@@ -12,6 +12,13 @@ const config: Types.Core.GameConfig = {
     width: 1920,
     height: 1080,
   },
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { x: 0, y: 0 },
+      debug: false,
+    },
+  },
   input: {
     keyboard: true,
   },

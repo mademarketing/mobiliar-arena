@@ -52,26 +52,9 @@ export default class Bootstrap extends Phaser.Scene {
     this.scene.stop(SceneKeys.Preload);
     console.log("Bootstrap: Preload finished");
 
-    // DEV: Skip to Wheel scene directly for development
-    
-    // TODO: Revert this before committing
-    /*
-    this.scene.start(SceneKeys.Wheel, {
-      outcome: {
-        isWin: true,
-        prizeType: "swfl", // "wfl" or "swfl"
-        displayName: "Super Win For Life",
-        textureKey: "super-winforlife",
-        timestamp: new Date().toISOString(),
-      },
-    });
-    return;
-     */
-    // END DEV
-
-    // Launch Idle scene (game entry point)
-    this.scene.start(SceneKeys.Idle, {
-      settings: this.settings,
+    // DEV: Skip directly to Game scene for testing
+    this.scene.start(SceneKeys.Game, {
+      players: [0, 1],
     });
   }
 }

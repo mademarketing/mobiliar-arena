@@ -11,6 +11,10 @@ const TextureKeys = {
   BuzzerIcon: "buzzer-icon",
   /** Background image */
   Background: "background",
+  /** Arena border/ring graphic */
+  ArenaBorder: "arena-border",
+  /** Ball sprite */
+  Ball: "ball",
 } as const;
 
 export default TextureKeys;

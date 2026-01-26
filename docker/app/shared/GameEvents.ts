@@ -36,6 +36,26 @@ enum GameEvents {
 
   /** Client notifies Result scene is shown (triggers print for wins) */
   ResultShown = "result-shown",
+
+  // Arena Pong Events
+
+  /** Player input (button press/release) from Phidgets */
+  PlayerInput = "player-input",
+
+  /** Player has joined the game */
+  PlayerJoined = "player-joined",
+
+  /** Player has left the game */
+  PlayerLeft = "player-left",
+
+  /** Game countdown started */
+  GameStart = "game-start",
+
+  /** Game has ended */
+  GameEnd = "game-end",
+
+  /** Score update */
+  ScoreUpdate = "score-update",
 }
 
 export default GameEvents;

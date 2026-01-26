@@ -2,55 +2,72 @@
 
 ## Overview
 
-[Your Game Name] is an interactive kiosk game that engages visitors at events. It combines physical buzzer gameplay with branded animations to distribute prizes while creating memorable brand experiences.
+**Mobiliar Arena** is a cooperative multiplayer circular Pong game for 2-6 players, created for Mobiliar's 200th anniversary campaign "Besser zusammen" (Better together). Players stand around a circular LED table, each controlling a paddle with left/right arcade buttons, working together to keep balls in play as long as possible.
 
 ## Problem Statement
 
-[Describe the problem your game solves. Example: Traditional promotional activations lack engagement and fail to create lasting brand impressions.]
+Traditional promotional activations are either single-player experiences that don't foster social interaction, or competitive games that work against Mobiliar's cooperative brand message. The "Besser zusammen" campaign needs an engaging multiplayer experience that reinforces the value of working together.
 
 ## Solution
 
-An arcade-style kiosk game where visitors press a physical buzzer to trigger an animated prize reveal on a single HD horizontal display. The tactile interaction combined with visual spectacle creates excitement and engagement, while the adaptive prize distribution algorithm ensures fair distribution throughout each event day.
+A circular Pong arena where 2-6 players cooperate to defend against balls spawning from the center. Each player controls a paddle on the edge of the circle, moving it left/right to deflect balls back into play. Success requires coordination and teamwork - if one player misses, the whole team loses that ball.
+
+The game is displayed on a 1920x1080 HD output connected to an LED controller that maps it onto a circular screen. Players stand around the physical table and use arcade buttons to control their paddles.
+
+## Campaign Integration
+
+**Campaign**: Mobiliar 200-year anniversary "Besser zusammen" (Better together)
+
+The cooperative gameplay directly supports the campaign message:
+- Players must work together - no individual winners or losers
+- Success is measured as a team score
+- Communication and coordination improve outcomes
+- The shared experience creates positive brand associations
 
 ## Target Audience
 
 ### Primary Users
 
-- **Event Visitors**: General public attending events who want entertainment and the chance to win prizes
-- **Event Promoters**: Staff operating the kiosk who need easy controls and monitoring
+- **Event Visitors**: Sports fans and general public at Mobiliar-sponsored events
+- **Corporate Guests**: Attendees at Mobiliar corporate events and celebrations
 
 ### User Needs
 
-- Quick, intuitive gameplay (no instructions needed)
-- Exciting visual feedback when playing
-- Fair chance at winning prizes throughout the event
-- Reliable operation without technical issues
+- Quick, intuitive gameplay (minimal instructions needed)
+- Engaging multiplayer experience that encourages interaction
+- Flexible player count (works with 2-6 people)
+- Visually appealing presentation appropriate for the event theme
 
 ## Value Proposition
 
-An engaging, branded experience that turns passive prize distribution into active entertainment.
+A unique, cooperative gaming experience that turns brand activation into memorable teamwork.
 
-- **Physical interaction**: Arcade-style buzzer creates excitement vs. touchscreens
-- **Visual spectacle**: HD display with animated prize reveals draws crowds
-- **Fair distribution**: Adaptive algorithm spreads prizes throughout the day
-- **Brand reinforcement**: Consistent theming creates lasting associations
+- **Cooperative play**: Reinforces "Besser zusammen" message through gameplay
+- **Scalable players**: Works with 2-6 players for varying group sizes
+- **Event theming**: Sport-specific visuals (basketball, handball, volleyball, floorball) or corporate branding
+- **Spectacular display**: Circular LED table creates visual impact and draws crowds
+- **Simple controls**: Two buttons per player - anyone can participate
 
 ## Core Principles
 
-- **Simplicity**: One button, one action - anyone can play without instructions
-- **Reliability**: Must work flawlessly during event hours with no crashes
-- **Fairness**: Prize distribution algorithm ensures all visitors have a fair chance
-- **Brand consistency**: Every visual and interaction reinforces brand identity
+- **Cooperation over competition**: Success is shared, reinforcing the campaign message
+- **Accessibility**: Simple left/right controls mean anyone can play immediately
+- **Flexibility**: Works across player counts and event themes
+- **Reliability**: Must work flawlessly during high-profile anniversary events
+- **Visual impact**: The circular display and coordinated gameplay draws attention
 
 ## Success Criteria
 
-- **Engagement**: High total plays per event
-- **Distribution**: 95%+ of daily prize inventory distributed by event close
+- **Engagement**: High replay rate and queue formation at events
+- **Teamwork**: Players naturally communicate and coordinate
+- **Accessibility**: No instructions needed for basic play
 - **Uptime**: 99%+ availability during operating hours
-- **Crowd attraction**: Visible queues forming at the kiosk
+- **Brand association**: Visitors connect the fun experience with Mobiliar's cooperative message
 
 ## Technical Foundation
 
-**Tech Stack**: Phaser.js 3 game engine, TypeScript, Node.js/Express backend, Socket.io for real-time communication, SQLite database, Docker containers on balenaOS
+**Tech Stack**: Phaser.js 3 game engine, TypeScript, Node.js/Express backend, Socket.io for real-time communication, Phidgets for arcade button input, Docker containers
 
-**Architecture**: Event-driven client-server architecture where clients control game flow and server determines prize outcomes. Multi-scene Phaser game with Bootstrap → Preload → Idle → Game → Result flow. Idle scene requests prize via callback before starting game. GamePlugin provides Socket.io integration. Adaptive time-based prize distribution algorithm ensures fair distribution.
+**Display**: 1920x1080 HD output → LED controller → circular LED screen
+
+**Architecture**: Multiplayer game with lobby → game → results flow. Phidgets digital inputs capture arcade button presses (left/right per player). Circular physics for ball bouncing and paddle positioning.

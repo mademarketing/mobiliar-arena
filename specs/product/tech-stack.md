@@ -1,16 +1,17 @@
 # Tech Stack
 
-**Last Updated**: [Update this]
+**Last Updated**: January 2026
 
 ## Overview
 
-[Your Game Name] Kiosk uses a TypeScript-based full-stack architecture with Phaser.js for game rendering, Node.js/Express for the backend, and Socket.io for real-time communication between the physical button hardware and the game client. The system is containerized with Docker and deployed on balenaOS for remote management.
+Mobiliar Arena uses a TypeScript-based full-stack architecture with Phaser.js for game rendering, Node.js/Express for the backend, and Socket.io for real-time communication between the Phidgets arcade button hardware and the game client. The system is containerized with Docker.
 
 ## Frontend
 
 **Framework/Library**: Phaser.js 3.90.0
 **Language**: TypeScript 5.9.2
 **Build Tool**: Vite 7.0.6
+
 **Key Libraries**:
 
 - Socket.io-client 4.8.1: Real-time communication with game server
@@ -33,8 +34,8 @@
 **Key Libraries**:
 
 - Socket.io 4.8.1: Real-time WebSocket communication
-- better-sqlite3 12.4.1: Fast synchronous SQLite client with prepared statement caching
-- Phidget22 3.22.5: Hardware button integration
+- better-sqlite3 12.4.1: Fast synchronous SQLite client
+- Phidget22 3.22.5: Arcade button hardware integration
 - CORS 2.8.5: Cross-origin resource sharing
 - dotenv 17.2.1: Environment variable management
 - node-cleanup 2.1.2: Graceful shutdown handling
@@ -42,8 +43,7 @@
 **Admin Interface**:
 
 - HTML5 + Tailwind CSS (CDN): Simple, responsive admin panel
-- Vanilla JavaScript: Fetch API for CRUD operations, no framework overhead
-- Chart.js (simulation reports): Interactive prize distribution visualizations
+- Vanilla JavaScript: No framework overhead
 
 **Development Tools**:
 
@@ -54,21 +54,28 @@
 
 - Vitest 3.2.4: Unit testing framework
 - jsdom 26.1.0: DOM implementation for testing
-- In-memory SQLite (`:memory:`): Fast, isolated database tests
 
 ## Infrastructure
 
-**Deployment**: balenaOS (Linux-based OS for IoT devices)
+**Deployment**: Docker containers (balenaOS optional for remote management)
 **Containerization**: Docker with multi-container architecture
-**Hardware**: Intel NUC platform (single device)
-**Physical Interface**: Phidget hub with button sensor (port 5) - **single physical buzzer**
-**Display**: Single HD horizontal screen (1920x1080)
-**Receipt Printer**: Optional thermal printer for QR code tickets
+**Hardware**: PC with USB Phidget hub connection
+
+**Physical Interface - Phidgets Digital Inputs**:
+- Phidget InterfaceKit or Digital Input board
+- 2 buttons per player × 6 players = up to 12 digital inputs
+- Standard arcade pushbuttons connected to Phidget hub
+- Button layout: Left/Right pair per player station
+
+**Display**:
+- Output: 1920x1080 HD (HDMI)
+- External LED controller maps rectangular output to circular LED screen
+- Phaser canvas renders circular arena centered on rectangular canvas
 
 **Network Architecture**:
-- **Admin Interface**: Port 80 (accessible via balena public URL for remote management)
-- **Game Client**: Port 3000 (local Chromium kiosk connects here)
-- **Single User**: One visitor at a time (single buzzer, physically serialized input)
+- **Admin Interface**: Port 80 (web browser access)
+- **Game Client**: Port 3000 (local Chromium kiosk)
+- **Multiplayer**: Multiple players on single screen (local co-op, not networked)
 - **Container Communication**: Browser <-> Server via localhost Socket.io
 
 **Key Services** (Docker Compose):
@@ -76,13 +83,12 @@
 - nodeapp: Main game application (client + server)
 - browser: Chromium in kiosk mode for display
 - phidgets: Hardware button server (port 5661)
-- scp-server: Remote file access for configuration updates
 
 **Display Configuration**:
 
-- Single 1920x1080 HD horizontal screen
-- Full-screen Chromium browser in kiosk mode
-- Direct HDMI output from Intel NUC
+- 1920x1080 HD rectangular canvas
+- Circular arena rendered centered (important content within circular bounds)
+- LED controller performs rectangular-to-circular mapping externally
 
 ## Development Tools
 
@@ -99,30 +105,44 @@
 
 ## Architecture Patterns
 
-**Multi-Container Architecture**: Separate containers for application, browser display, hardware integration, and remote access, orchestrated via Docker Compose.
+**Multiplayer Local Co-op**: All players on single screen, each with dedicated Phidget button inputs. No network multiplayer in MVP.
 
-**Event-Driven Communication**: Socket.io events connect physical button presses to game state changes with client-driven logic:
+**Event-Driven Communication**: Socket.io events connect physical button presses to paddle movements:
 
-- `BuzzerPress`: Server -> All Clients (physical button pressed, clients decide action)
-- `SimulateBuzzerPress`: Stress Test -> Server (simulates button press, relayed as BuzzerPress)
-- `RequestPrize`: Client -> Server (request new prize outcome)
-- `PrizeAwarded`: Server -> All Clients (prize outcome determined by server)
-- `AnimationComplete`: Client -> Server (animation finished, used for stress test coordination)
-- `GamePaused` / `GameResumed`: Server -> All Clients (game state changes)
-- `PreloadFinished`: Client -> Server (asset loading complete)
+- `PlayerInput`: Server -> Client (button press/release for specific player)
+- `PlayerJoin`: Client -> Server (player joined via button hold)
+- `PlayerLeave`: Client -> Server (player left game)
+- `GameState`: Server -> Client (sync game state if needed)
+- `GameStart`: Server -> Client (countdown complete, begin gameplay)
+- `GameEnd`: Server -> Client (timer finished)
 
-**Client-Driven Architecture**: Clients control game flow (when to request prizes vs. hide them), server only determines prize outcomes. This prevents duplicate database entries and simplifies state management. See `specs/architecture/event-driven-prize-flow.md` for details.
+**Scene-Based Game Architecture**: Phaser.js scenes organized as:
+```
+Bootstrap -> Preload -> Lobby -> Game -> Result -> Lobby (loop)
+```
 
-**Scene-Based Game Architecture**: Phaser.js scenes organized as Bootstrap -> Preload -> Idle -> Game -> Result, with a GamePlugin for Socket.io integration.
+**Circular Coordinate System**: Custom math utilities for:
+- Paddle positioning around circumference
+- Ball-paddle collision detection on curved surfaces
+- Angle-based movement calculations
 
-**Single Screen Display**: 1920x1080 Phaser canvas renders directly to single HD horizontal screen via Chromium kiosk mode.
+**Theme System**: Configuration-driven asset loading:
+- Themes stored in `assets/themes/{theme-name}/`
+- Each theme provides: `background.png`, `ball.png`
+- Active theme selected via settings or admin panel
 
-**Configuration-Driven**: JSON-based settings file (`content/settings.json`) for easy customization without code changes.
-
-**Hot Reload Development**: Separate development servers for client and server with automatic reloading on file changes.
-
-**Remote Management**: balenaOS enables over-the-air updates and remote SSH access for production deployments.
+**Configuration-Driven**: JSON-based settings file for:
+- Player count limits
+- Game duration
+- Ball spawn rate
+- Difficulty curve
+- Theme selection
+- Button mapping
 
 ## Technical Decisions
 
-No user-specified tech stack choices were provided during initial planning. The existing stack is production-tested and well-suited for kiosk deployments with hardware integration requirements.
+**Why Phidgets Digital Inputs**: Reliable industrial-grade hardware designed for arcade/kiosk applications. The Phidget22 library provides stable Node.js bindings. Up to 16 digital inputs per hub supports 6-player configuration.
+
+**Why Single-Screen Multiplayer**: Circular table design means all players can see the same screen from different angles. This simplifies architecture (no network sync) while maintaining the cooperative experience.
+
+**Why Rectangular-to-Circular External**: LED controller handles the pixel mapping, allowing standard 1920x1080 game development workflow. The game just needs to keep important content within the circular bounds.

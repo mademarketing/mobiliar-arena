@@ -1,4 +1,4 @@
-# Coding Standards - Win for Life Roadshow Kiosk
+# Coding Standards - Mobiliar Arena
 
 ## Core Principles
 

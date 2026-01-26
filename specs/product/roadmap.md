@@ -1,115 +1,159 @@
 # Product Development Roadmap
 
-**Last Updated**: [Update this]
+**Last Updated**: January 2026
 
 ## Roadmap Overview
 
-Development is organized into four phases, building on the existing kiosk game template infrastructure. Phase 1 delivers a playable MVP with your branding, followed by phases adding polish, advanced features, and deployment readiness.
+Development is organized into four phases. Phase 1 delivers a playable multiplayer Pong with basic visuals, followed by phases adding visual polish, theming, and production readiness.
 
 ---
 
-## Phase 1: MVP (Minimum Viable Product)
+## Phase 1: Core Gameplay MVP
 
-**Goal**: Functional game flow with simple graphics and core prize distribution
+**Goal**: Functional multiplayer circular Pong with basic graphics and keyboard controls
 
 **Status**: [ ] Not Started
 
 ### Features
 
-- [ ] **Game scene**: [Your game mechanic - wheel spin, scratch card, slot machine, etc.]
-- [ ] **Result scene**: Combined win celebration and lose consolation display
-- [ ] **Idle state**: Logo, instruction text, buzzer icon with server prize request
-- [ ] **Keyboard shortcuts**: Space (server), 1 (force win), 2 (force lose) for testing
-- [ ] **Prize configuration**: Two-tier system (inventory prizes, consolation)
+- [ ] **Circular arena**: Render playing field centered on 1920x1080 canvas
+- [ ] **Ball physics**: Balls spawn from center, bounce off paddles, disappear when missed
+- [ ] **Paddle system**: Paddles positioned around circumference, move along arc
+- [ ] **Player scaling**: Paddle size/position adjusts for 2-6 players
+- [ ] **Lobby scene**: Player join flow (keyboard shortcuts for testing)
+- [ ] **Game scene**: 60-second timer, ball spawning every 5 seconds
+- [ ] **Result scene**: Final score display, return to lobby
+- [ ] **Scoring**: Central score counter, basic combo tracking
+- [ ] **Keyboard controls**: Arrow keys for P1, W/S for P2, number keys to join
 
 ### Success Criteria
 
-- [ ] Complete game flow: Idle -> Game -> Result -> Idle
-- [ ] All scenes functional with placeholder graphics
-- [ ] Prizes distributed via RequestPrize callback with timeout handling
+- [ ] Complete game loop: Lobby → Game → Result → Lobby
+- [ ] 2-6 players can join and play simultaneously
+- [ ] Ball physics feel responsive and fair
+- [ ] Score accumulates correctly
 
-### Technical Dependencies
+### Technical Focus
 
-- [ ] Bootstrap -> Preload scene architecture (extended with game scenes)
-- [ ] PrizeEngine with adaptive distribution algorithm
-- [ ] Socket.io event system with callback-based RequestPrize
+- Circular coordinate system for paddle positioning
+- Ball-paddle collision detection on curved surfaces
+- Dynamic player count handling
 
 ---
 
-## Phase 2: Visual Polish
+## Phase 2: Hardware Integration
 
-**Goal**: Production-quality animations and polished visual experience
+**Goal**: Phidgets arcade button input working with physical controls
 
 **Status**: [ ] Not Started
 
 ### Features
 
-- [ ] **Visual theme**: Branded background, colors, and typography throughout all scenes
-- [ ] **Receipt printer integration**: Print QR codes for win (voucher code) and lose (promo URL) outcomes
-- [ ] **Voucher code system**: Pre-load QR code strings into database, mark as used when printed
-- [ ] **Enhanced game animations**: Add particle effects and celebratory visuals
-- [ ] **Prize-specific win visuals**: Different celebrations for each prize tier
-- [ ] **Transition effects**: Smooth fades and transitions between all scenes
-- [ ] **Idle/attract mode**: Animated visuals to draw attention when waiting for players
+- [ ] **Phidgets integration**: Connect to digital input hub
+- [ ] **Button mapping**: Configure which inputs map to which player/direction
+- [ ] **Join gesture**: Hold both buttons for 3 seconds to join
+- [ ] **Input feedback**: Visual confirmation when buttons pressed
+- [ ] **Graceful degradation**: Handle disconnected/missing inputs
+- [ ] **Admin configuration**: Button mapping in admin panel
 
 ### Success Criteria
 
-- Branding visible and consistent across all scenes
-- Animations run at 60 FPS without stuttering
-- Idle mode attracts visitor attention
+- [ ] Physical arcade buttons control paddles
+- [ ] Players can join using button hold gesture
+- [ ] System handles button disconnection gracefully
+- [ ] Latency under 50ms
 
-### Technical Dependencies
+### Technical Focus
 
-- Phase 1 functional game flow
-- Single 1920x1080 HD display output
+- Phidget22 library integration
+- Input debouncing
+- Connection monitoring and reconnection
 
 ---
 
-## Phase 3: Event Operations
+## Phase 3: Visual Polish & Theming
 
-**Goal**: Ready for event deployment with operational tooling
+**Goal**: Production-quality visuals with sport/corporate themes
 
 **Status**: [ ] Not Started
 
 ### Features
 
-- [ ] **Admin-based configuration**: Move all settings from JSON files to admin interface (operating hours, prize inventory, etc.)
-- [ ] **Promoter quick-start guide**: Documentation for event staff setup
-- [ ] **Pre-event checklist**: Admin panel checklist to verify system readiness
-- [ ] **Statistics dashboard**: Real-time view of plays, prizes distributed, and inventory remaining
-- [ ] **End-of-day report**: Summary of event performance for each event stop
+- [ ] **Theme system**: Load background and ball assets per theme
+- [ ] **Sport themes**: Basketball, handball, volleyball, floorball
+- [ ] **Corporate theme**: Mobiliar white/red branding
+- [ ] **Paddle visuals**: Distinct colors per player, neon/glow effect
+- [ ] **Ball animations**: Rotation, trail effects
+- [ ] **UI polish**: Score display, timer, combo indicator
+- [ ] **Lobby animations**: Player join effects, countdown
+- [ ] **Result celebration**: Score reveal, "Besser zusammen" message
+- [ ] **Difficulty visual**: Paddle shrinking animation
 
 ### Success Criteria
 
-- Non-technical staff can set up and operate the kiosk
-- Event managers can monitor performance remotely
-- Clear reporting for post-event analysis
+- [ ] Themes can be switched via configuration
+- [ ] Visuals run at 60 FPS
+- [ ] Consistent visual style across scenes
+- [ ] "Besser zusammen" branding prominent in result
 
-### Technical Dependencies
+### Technical Focus
 
-- Phase 2 polished game experience
-- Existing admin panel infrastructure
+- Asset loading per theme
+- Particle effects
+- Smooth animations with Phaser tweens
 
 ---
 
-## Phase 4+: Future Enhancements
+## Phase 4: Event Operations
 
-**Goal**: Advanced features for future event seasons
+**Goal**: Ready for event deployment with admin tools
+
+**Status**: [ ] Not Started
+
+### Features
+
+- [ ] **Admin panel**: Theme selection, game settings, highscore management
+- [ ] **Highscore system**: Persist best scores, display in lobby
+- [ ] **Operating hours**: Auto-enable/disable based on schedule
+- [ ] **Statistics**: Track plays, average scores, player counts
+- [ ] **Remote monitoring**: Status endpoint for health checks
+- [ ] **Kiosk mode**: Auto-start, crash recovery, full-screen
+
+### Success Criteria
+
+- [ ] Non-technical staff can configure and operate
+- [ ] Highscores persist across restarts
+- [ ] System runs unattended during events
+- [ ] Easy theme switching for different events
+
+### Technical Focus
+
+- SQLite database for scores/stats
+- Docker container orchestration
+- Crash recovery mechanisms
+
+---
+
+## Phase 5+: Future Enhancements
+
+**Goal**: Advanced features for future iterations
 
 ### Potential Features
 
-- **Multi-language support**: Support multiple languages for different regions
-- **Analytics integration**: Send event data to central analytics platform
-- **Remote configuration**: Update settings without physical access to device
-- **A/B testing**: Test different animations or prize distributions across events
-- **Photo mode**: Allow visitors to take branded photos with their prize
-- **Social sharing**: QR code to share win on social media
+- **Single-player mode**: AI-controlled co-players for solo practice
+- **Power-ups**: Paddle boost, slow motion, multi-ball
+- **Sound design**: Music, sound effects, crowd reactions
+- **Tournament mode**: Multiple rounds, elimination brackets
+- **Network play**: Multiple tables competing remotely
+- **Analytics dashboard**: Detailed event statistics and reporting
+- **Photo integration**: Take team photo after high score
 
 ---
 
 ## Notes
 
-- The existing template provides a solid foundation with prize distribution, admin panel, and hardware integration already implemented
-- Focus Phase 1 on branding and game feel rather than infrastructure
-- Operating hours will vary by venue - ensure easy configuration
-- Prize types are configured in `content/prizes.json` - update with your prize definitions
+- Phase 1 focuses on core gameplay feel - this is the foundation
+- Hardware integration (Phase 2) can be developed in parallel with visual polish
+- Theme assets need to be created/sourced for Phase 3
+- Event deployment date will determine timeline compression
+- The existing kiosk template provides server infrastructure, admin panel basics, and Docker setup

@@ -1,6 +1,6 @@
 # Architecture Documentation
 
-Technical architecture and implementation patterns for the Win for Life Roadshow Kiosk.
+Technical architecture and implementation patterns for the Mobiliar Arena multiplayer Pong game.
 
 ## Contents
 
@@ -15,33 +15,25 @@ Coding conventions and best practices:
 
 ### [scene-flow.md](scene-flow.md)
 Scene architecture and lifecycle:
-- Multi-scene architecture overview (Idle → IconGrid → Wheel → Result)
+- Multi-scene architecture overview (Lobby → Countdown → Game → Result)
 - Scene transition flow
-- Scene registration patterns
-- Display configuration (single 1920x1080 HD screen)
+- Circular arena rendering
+- Player positioning calculations
+- Ball physics overview
 
-### [event-driven-prize-flow.md](event-driven-prize-flow.md)
-**Event-driven architecture for prize distribution**
-- Client-driven game logic (when to request prizes)
-- Server-side prize determination only
-- Event flow diagrams (BuzzerPress, RequestPrize, PrizeAwarded)
-- Multi-scene event handling
-- Design decisions and rationale
+### [circular-physics.md](circular-physics.md) *(planned)*
+Circular coordinate system and physics:
+- Paddle positioning on circumference
+- Ball-paddle collision detection
+- Angle-based movement calculations
+- Player count scaling
 
-### [prize-distribution-simple.md](prize-distribution-simple.md)
-Prize distribution algorithm:
-- Time-based adaptive distribution
-- Multiple prize types (Win for Life, Super Win for Life)
-- Configuration and tuning
-- Simulation and testing
-- Implementation details
-
-### [operating-hours.md](operating-hours.md)
-Operating hours and timezone handling:
-- Swiss timezone (Europe/Zurich) implementation
-- Prize distribution during/outside operating hours
-- Edge cases (prizes scheduled outside hours)
-- Timezone-safe development and testing
+### [input-system.md](input-system.md) *(planned)*
+Phidgets button input handling:
+- Digital input mapping
+- Player join gesture detection
+- Button debouncing
+- Connection monitoring
 
 ---
 
@@ -50,8 +42,18 @@ Operating hours and timezone handling:
 **New to the codebase?** Start here:
 1. Read [coding-standards.md](coding-standards.md) - Learn required patterns
 2. Read [scene-flow.md](scene-flow.md) - Understand multi-scene architecture
-3. Read [prize-distribution-simple.md](prize-distribution-simple.md) - Understand prize logic
 
 **Making changes?** Check:
 - [coding-standards.md](coding-standards.md#code-review-checklist) - Code review checklist
 - [scene-flow.md](scene-flow.md#adding-new-features) - Where to add features
+
+## Key Concepts
+
+### Circular Arena
+The game renders on a 1920x1080 canvas but all gameplay happens within a circular arena centered on the canvas. The external LED controller maps this to the physical circular screen.
+
+### Cooperative Multiplayer
+2-6 players work together. There's no competition between players - the goal is team score maximization.
+
+### Dynamic Player Scaling
+Paddle size and position adjust automatically based on how many players join.

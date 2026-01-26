@@ -205,10 +205,8 @@ export default class Countdown extends Phaser.Scene {
     // Remove all keys to prevent state bleeding between scenes
     this.input.keyboard?.removeAllKeys(true);
 
-    if (this.countdownTimer) {
-      this.countdownTimer.remove();
-      this.countdownTimer = undefined;
-    }
+    this.countdownTimer?.remove();
+    this.countdownTimer = undefined;
 
     this.gameArena?.destroy();
     this.gameArena = undefined;

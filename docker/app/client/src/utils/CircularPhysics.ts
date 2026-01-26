@@ -196,8 +196,39 @@ export function checkPaddleCollision(
 }
 
 /**
+ * Calculate the radial velocity (positive = moving away from center, negative = toward center)
+ *
+ * @param ballVelocityX - Ball X velocity
+ * @param ballVelocityY - Ball Y velocity
+ * @param ballX - Ball X position
+ * @param ballY - Ball Y position
+ * @returns Radial velocity (positive = outward, negative = inward)
+ */
+export function getRadialVelocity(
+  ballVelocityX: number,
+  ballVelocityY: number,
+  ballX: number,
+  ballY: number
+): number {
+  // Vector from center to ball position
+  const dx = ballX - ARENA_CENTER_X;
+  const dy = ballY - ARENA_CENTER_Y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance === 0) return 0;
+
+  // Unit vector pointing outward from center
+  const outwardX = dx / distance;
+  const outwardY = dy / distance;
+
+  // Dot product of velocity with outward direction = radial velocity
+  return ballVelocityX * outwardX + ballVelocityY * outwardY;
+}
+
+/**
  * Reflect ball velocity after hitting a paddle
  * The ball bounces back toward the center with some angle based on where it hit
+ * Only reflects if the ball is moving outward (away from center)
  *
  * @param ballVelocityX - Current ball X velocity
  * @param ballVelocityY - Current ball Y velocity
@@ -205,7 +236,7 @@ export function checkPaddleCollision(
  * @param ballY - Ball Y position
  * @param paddleAngle - Paddle center angle in degrees
  * @param paddleArcWidth - Paddle arc width in degrees
- * @returns New velocity object with x and y components
+ * @returns New velocity object with x and y components, or original velocity if ball is moving inward
  */
 export function reflectBallVelocity(
   ballVelocityX: number,
@@ -215,6 +246,14 @@ export function reflectBallVelocity(
   paddleAngle: number,
   paddleArcWidth: number
 ): { x: number; y: number } {
+  // Only reflect if ball is moving outward (away from center)
+  // This prevents reflecting off the "back" of the paddle
+  const radialVelocity = getRadialVelocity(ballVelocityX, ballVelocityY, ballX, ballY);
+  if (radialVelocity <= 0) {
+    // Ball is moving toward center or stationary, don't reflect
+    return { x: ballVelocityX, y: ballVelocityY };
+  }
+
   const ball = cartesianToPolar(ballX, ballY);
   const speed = Math.sqrt(
     ballVelocityX * ballVelocityX + ballVelocityY * ballVelocityY

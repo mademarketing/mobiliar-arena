@@ -370,10 +370,8 @@ export default class Lobby extends Phaser.Scene {
     this.input.keyboard?.removeAllListeners();
     this.input.keyboard?.removeAllKeys(true);
 
-    if (this.autoStartTimer) {
-      this.autoStartTimer.remove();
-      this.autoStartTimer = undefined;
-    }
+    this.autoStartTimer?.remove();
+    this.autoStartTimer = undefined;
 
     // Clean up player slots
     for (const slot of this.playerSlots) {

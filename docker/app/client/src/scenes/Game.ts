@@ -222,10 +222,8 @@ export default class Game extends Phaser.Scene {
     this.isGameOver = true;
 
     // Stop timer
-    if (this.gameTimer) {
-      this.gameTimer.remove();
-      this.gameTimer = undefined;
-    }
+    this.gameTimer?.remove();
+    this.gameTimer = undefined;
 
     // Stop game arena
     this.gameArena?.stop();
@@ -301,10 +299,8 @@ export default class Game extends Phaser.Scene {
     this.input.keyboard?.removeAllKeys(true);
 
     // Stop timer
-    if (this.gameTimer) {
-      this.gameTimer.remove();
-      this.gameTimer = undefined;
-    }
+    this.gameTimer?.remove();
+    this.gameTimer = undefined;
 
     // Clean up game arena
     this.gameArena?.destroy();

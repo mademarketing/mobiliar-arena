@@ -80,9 +80,7 @@ export default class Ball {
     return BALL.RADIUS;
   }
   get speed(): number {
-    const vx = this.velocityX;
-    const vy = this.velocityY;
-    return Math.sqrt(vx * vx + vy * vy);
+    return Math.sqrt(this.velocityX ** 2 + this.velocityY ** 2);
   }
   get isActive(): boolean {
     return this._isActive;

@@ -70,7 +70,7 @@ export default class Result extends Phaser.Scene {
     }
   }
 
-  create() {
+  create(): void {
     this.gamePlugin = this.plugins.get("GamePlugin") as GamePlugin;
     this.events.once("shutdown", this.shutdown, this);
 
@@ -116,7 +116,7 @@ export default class Result extends Phaser.Scene {
   /**
    * Create team score display for arena game
    */
-  private createTeamScoreDisplay(centerX: number, centerY: number) {
+  private createTeamScoreDisplay(centerX: number, centerY: number): void {
     if (!this.gameResult) return;
 
     // "Besser zusammen" tagline
@@ -193,7 +193,7 @@ export default class Result extends Phaser.Scene {
   /**
    * Animate score counting up from 0
    */
-  private animateScoreCount(textObject: Phaser.GameObjects.Text, targetScore: number) {
+  private animateScoreCount(textObject: Phaser.GameObjects.Text, targetScore: number): void {
     const duration = Math.min(2000, targetScore * 10); // Cap at 2 seconds
     let currentScore = 0;
 
@@ -210,7 +210,7 @@ export default class Result extends Phaser.Scene {
     });
   }
 
-  private createWinDisplay(centerX: number, centerY: number) {
+  private createWinDisplay(centerX: number, centerY: number): void {
     // Congratulations text
     this.add
       .text(centerX, 150, "Congratulations!", {
@@ -251,7 +251,7 @@ export default class Result extends Phaser.Scene {
     this.addCelebrationEffect(centerX, centerY);
   }
 
-  private createLoseDisplay(centerX: number, centerY: number) {
+  private createLoseDisplay(centerX: number, centerY: number): void {
     // Logo
     this.add
       .image(centerX, centerY - 100, TextureKeys.Logo)
@@ -276,7 +276,7 @@ export default class Result extends Phaser.Scene {
       .setDepth(DEPTH.UI_ELEMENTS);
   }
 
-  private addCelebrationEffect(_centerX: number, _centerY: number) {
+  private addCelebrationEffect(_centerX: number, _centerY: number): void {
     // Simple particle-like effect using tweening circles
     for (let i = 0; i < 30; i++) {
       const x = Phaser.Math.Between(100, CANVAS.WIDTH - 100);
@@ -315,10 +315,9 @@ export default class Result extends Phaser.Scene {
     }
   };
 
-  shutdown() {
-    if (this.autoDismissTimer) {
-      this.autoDismissTimer.remove();
-    }
+  shutdown(): void {
+    this.autoDismissTimer?.remove();
+    this.autoDismissTimer = undefined;
     this.input.keyboard?.off("keydown-SPACE", this.returnToLobby, this);
     this.backdrop?.destroy();
     this.backdrop = undefined;

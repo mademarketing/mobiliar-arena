@@ -1,0 +1,9 @@
+# Test: Verify game loads and displays start screen
+name: Game Loads
+steps:
+  - open: http://localhost:8080
+  - wait: 2000
+  - screenshot: game-loads-01-initial.png
+  - eval: document.getElementsByTagName("canvas").length > 0
+  - expect: true
+  - close: true

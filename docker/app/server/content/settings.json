@@ -1,0 +1,24 @@
+{
+  "game": {
+    "title": "Kiosk Game",
+    "version": "1.0.0"
+  },
+  "prizes": {
+    "operatingHours": {
+      "openTime": "10:00",
+      "closeTime": "20:00"
+    },
+    "algorithm": {
+      "openTime": "10:00",
+      "closeTime": "20:00",
+      "windowStart": 0.7,
+      "windowEnd": 1.5,
+      "minProbability": 0.02,
+      "rampStart": 0.15,
+      "rampEnd": 0.75,
+      "urgentProbability": 0.95
+    },
+    "inventoryPrizeTextureKey": "secondary-prize"
+  },
+  "timezone": "Europe/Zurich"
+}

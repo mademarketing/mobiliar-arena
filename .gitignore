@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+logs/
+play-logs.csv
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.backup
+*.bak
+
+# Test coverage
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# Claude Code
+.claude/data/
+worktrees/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# E2E test screenshots
+docker/app/client/tests/e2e/screenshots/

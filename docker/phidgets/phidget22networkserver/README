@@ -1,0 +1,373 @@
+                     Phidget22 Network Server
+                           Version 1.16
+				  
+Installation
+============
+
+	./configure && make && make install
+	
+For a default configuration:
+
+	mkdir -p /etc/phidgets
+	cp files/etc/phidgets/* /etc/phidgets/
+	
+Requirements
+============
+
+	libphidget22
+	libphidget22extra
+
+	Avahi client library
+	
+ For Phidget server publish support, Avahi is required, along with
+ the Avahi client library. This is usually a package called 
+ libavahi-client or similar.
+
+Usage
+=====
+
+   'phidget22networkserver -h' to see options.
+
+
+Configuration
+=============
+
+ The configuration file is located in /etc/phidgets by default and
+ is named phidget22networkserver.pc.
+
+ Review the configuration file along side this document for context.
+ In most cases, the server will run with reasonable defaults if a
+ block, or element is undefined.
+
+ The file format follows a basic structure with named blocks and
+ key value pair elements.
+ 
+ A block is named and its contents are enclosed in braces:
+
+ 	blockname { contents }
+
+An element is named followed by the value:
+
+	elementname : value
+
+Values can be strings, boolean, numbers or lists.
+Strings are quoted with either single or double quotes.
+
+	a: token
+	b: 'a string'
+	c: "another string"
+	d: true
+	e: false
+	f: 1
+	g: 1.1
+	h: [ 'str', 6, false ]
+
+
+Each major feature or subsystem of the server is located within its
+own block.
+
+	<auth>
+		Contains the password (if any) required by clients to
+		connect to the server.
+
+	<logging>
+		Controls the default log level, the number of log files to
+		keep before deleting and the maximum size of the log files.
+
+		<network>
+			Enables and specifies the port number for the phidget
+			network log server.
+
+		<source>
+			Allows fine control of the various log sources.
+			Sources whose names begins with '_' are not affected by
+			the global log level.
+
+	<network>
+		Control the network features of the server.
+
+		<ipv4>
+			port number, and optionally the address to listen on.
+
+		<datagram>
+			If datagram support for events should be enabled.
+
+		<publish>
+			If the server should publish itself to mDNS (bonjour), and
+			optionally the name of the server.
+
+
+	<feature>
+		Enable features of the server.
+
+		<control>
+			Enables the control dictionary.
+
+		<stats>
+			Enables the statistics dictionary.
+
+		<dictionary>
+			Enables the loading of custom dictionaries, and optionally
+			specifies the directory that contains the dictionaries.
+
+	<filter>
+		Controls the filtering of client connections to the server
+
+		<clients>
+			Specifies the default action, and lists the clients to
+			allow and deny
+
+			<allow>
+				Enables, and specifies the allow list
+
+			<deny>
+				Enables, and specifies the deny list
+
+
+	<www>
+		Controls the phidget web server.
+
+		<logging>
+			The log level, and the location of the access log.
+
+		<network>
+			<ipv4>
+				The port number and optionally the address to bind to.
+
+			<publish>
+				Specifies if the web server should publish itself
+				to mDNS (bonjour), and optionally the name to publish.
+
+		<phidgets>
+			Controls access to Phidget channels over the websock
+			interface, and optionally specifies the password required
+			to connect to the Phidget server.
+
+	<dictionarystore>
+		Configuration for the dictionary store service.
+
+		<database>
+			<directory>
+				Controls where log databases are stored.
+
+		<sync>
+			Specifies how often config key changes are written out, 
+			in seconds. Defaults to 5.
+
+Keepalives
+==========
+
+ The network server verifies it's connection to clients periodically
+ via keepalives. It sends a keepalive message to each client at a set
+ interval, and expects to hear back from the client within a set
+ interval. If the server does not hear back, it will close the
+ connection to that client, as well as closing any opened Phidget
+ channels that are no longer in use. This is a safety feature designed
+ to reset devices to their off-state when a connection goes bad.
+ 
+ The default server keepalive time is 4000ms (4 seconds). This
+ guarantees that channels will be closed with 4 to 8 seconds after
+ a connection goes bad - up to 4 seconds for the keepalive interval, 
+ and 4 seconds for the keepalive timeout.
+ 
+ The server-side keepalive time can be configured in the server
+ config file, in the network block like so:
+ 
+	network {
+		keepalive: 4000
+	}
+	
+ Keepalives can be disabled by setting the keepalive time to 0 in the
+ server config file. However, keep in mind that if no traffic is 
+ going over the network connection, a loss of connection may NEVER
+ be detected - for example a digital input or output that isn't 
+ changing does not produce any network traffic. Even with traffic,
+ it can take 60 seconds or more to detect a bad connection.
+ 
+ Network clients also have a keepalive. After receiving a keepalive
+ message, the client expects to keep receiving keepalives within a
+ set deadline. If a keepalive is not received, the client closes the
+ connection and detaches all Phidget channels opened by the user. If
+ a keepalive message is never received (because keepalives are 
+ disabled on the server), the client keepalive is never activated.
+ 
+ The default client keepalive is 8000ms (8 seconds). This guarantees
+ that channels are detached within 8 seconds of a connection going
+ bad. The client keepalive should always be 2x the server keepalive
+ because the server keepalive is used to the interval and timeout,
+ and the client keepalive is a combination of server interval and 
+ timeout.
+ 
+ The client keepalive can be configured via an API call like so:
+ 
+	PhidgetNet_setProperty("keepalive", "%d", 4000);
+	
+ Currently, PhidgetNet_setProperty() is only exposed in the C API.
+ 
+ Keepalives can sometimes cause unwanted behaviour - especially when
+ a network is not very stable, or client or server machines are going
+ to sleep, etc. It's recommended to handle attach and detach events
+ in case keepalives disconnects happen. The client will automatically
+ reconnect to the server, but the state of all channels willl have
+ been reset to defaults. If you are seeing keepalive errors in either
+ the server of client side log files, consider what may be the cause.
+ It may make sense to disable keepalives if it isn't critical to
+ reset devices when a connection goes bad.
+ 
+
+Dictionaries
+============
+
+ A Phidget dictionary is a virtual device channel that contains
+ key value pairs.  Dictionaries must be created by the server.
+
+ A dictionary is created by placing a configuration file that
+ describes the dictionary in the dictionary directory.  By default
+ the dictionary directory is /etc/phidgets/dictionary.d on UNIX,
+ c:\ProgramData\Phidgets\dictionary.d on Windows and
+ /Library/Preferences/Phidget22NetworkServer/dictionary.d on macOS.
+ 
+ Dictionary config files must end with the ".dpc" extension.
+
+	dictionary {
+		enabled: true
+		label: <Dictionary Device Label>
+		sn: <Dictionary Serial Number> # >= 1000
+		config {
+			key {
+				<keyname> {
+					value: <value>
+				}
+			}
+		}
+		log {
+			key {
+				<keyname> {
+					enabled: true
+ 					interval {
+ 						min: <minimum update interval>
+ 					}
+				}
+			}
+		}
+	}
+
+ A dictionary configuration file contains at least a config block
+ with a child key block made up of one block for each key in
+ the dictionary.
+
+ When the server starts it creates a virtual dictionary device
+ for each file found in the dictionary directory.  The device
+ will be assigned the label and serial number from the configuration
+ file.
+
+ Each key in the config.key block is added to the dictionary.
+
+Dictionary Store
+================
+
+ The dictionary store server monitors dictionaries for changes
+ and updates config.key blocks when an update occurs.
+
+ The purpose of the dictionary store is to allow user systems to
+ define configuration key value pairs that can be accessed by
+ software using the Phidget API.  When the configuration is
+ altered by the software, the dictionary store will receive an
+ event and store the configuration change back to the dictionary
+ configuration.
+
+ If the config key has defined 'update' as false, changes to the
+ dictionary will not cause the change to be persisted.  When the
+ network server restarts, the original value will be restored.
+
+ By default keys that are added to the dictionary, but are not
+ already in the dictionary config, will not cause the dictionary
+ configuration to change.  The 'add' flag may be set to 'true',
+ which will cause the dictionary store to persist new keys to
+ the configuration.
+
+ By default keys that are removed from the dictionary are not
+ removed from the configuration.  If the config key has defined
+ 'remove' as true, the removal will be persisted to the
+ configuration.
+
+ 	dictionary {
+ 		enabled: true
+ 		label: 'Example'
+ 		sn: 1000
+ 		generation: 'user generation' # defaults to 'default'
+ 		add: false
+ 		config {
+ 			key {
+ 				pi {
+ 					update: false
+ 					remove: false
+ 					value: 3.141592654
+ 				}
+ 				radius {
+ 					remove: true
+ 					value: 30
+ 				}
+ 			}
+ 		}
+ 	}
+
+ Updates to config keys cause the previous value to be overwritten,
+ and are intended to store state.  In order to support logging of
+ changes, log keys can be used.
+
+ dictionary {
+ 	enabled: true
+ 	label: 'Example'
+ 	sn: 1000
+ 	log {
+ 		key {
+ 			temperature {
+				enabled: true
+			}
+ 		}
+ 	}
+ }
+
+ When the dictionary store receives an update event for a log
+ key, a record is written to the log database.  The log record
+ contains a unique id, the date and time of the update, a user
+ defined generation value, and the key and value.
+
+ The rate that updates are logged can be controlled by the
+ dictionary configuration.
+
+ 	dictionary {
+ 		log {
+ 			key {
+ 				temp {
+ 					interval {
+ 						min: 30 # store not more than 1 per 30 sec
+ 					}
+ 				}
+ 			}
+ 		}
+ 	}
+	
+ Note that config blocks cannot be empty, so a log key that does
+ not specify any settings must at least specify 'enabled: true'
+
+ Log data can be queried from the network server www interface
+ by performing an HTTP GET at /api/v1/dictionary?dictserial=<serial>
+ 
+ This API must be enabled in the dictionary config by setting
+ 'phidget.feature.dictionary.webapi.enabled' to 'true'
+
+ The following would return all the log records from the Example
+ dictionary for the key 'temp'.  The data format is JSON.
+
+ http://servername:port/api/v1/dictionary?dictserial=1000&key=temp
+
+ Additional query parameters include:
+
+ 	gen=<the generation>
+ 	startid: id >= given number
+ 	endid: id <= given number
+ 	startdate: log date >= given date (ISO8601)
+ 	enddate: log date <= given date (ISO8601)
+

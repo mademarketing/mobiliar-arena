@@ -1,0 +1,39 @@
+name: Interactive Scratch Selection
+description: Test player-controlled scratch ticket selection in IconGrid
+
+config:
+  game_url: http://localhost:8080
+  initial_wait: 2000
+  session: interactive-scratch-test
+
+steps:
+  # Initial idle screen
+  - open: http://localhost:8080
+  - wait: 2000
+  - screenshot: interactive-scratch/01-idle-screen.png
+
+  # Start game - go to IconGrid
+  - press: Space
+  - wait: 1500
+  - screenshot: interactive-scratch/02-icongrid-initial.png
+
+  # First player selection
+  - press: Space
+  - wait: 2000
+  - screenshot: interactive-scratch/03-after-first-scratch.png
+
+  # Second player selection
+  - press: Space
+  - wait: 2000
+  - screenshot: interactive-scratch/04-after-second-scratch.png
+
+  # Third player selection (outcome reveal)
+  - press: Space
+  - wait: 2500
+  - screenshot: interactive-scratch/05-all-scratched.png
+
+  # Wait for scene transition
+  - wait: 2000
+  - screenshot: interactive-scratch/06-next-scene.png
+
+  - close: true

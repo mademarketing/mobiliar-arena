@@ -1,0 +1,48 @@
+# AI Docs
+
+> Resources to fetch and load into ai_docs/\*.md at runtime
+
+- https://docs.phaser.io/phaser/concepts/actions
+- https://docs.phaser.io/phaser/concepts/animations
+- https://docs.phaser.io/phaser/concepts/audio
+- https://docs.phaser.io/phaser/concepts/cameras
+- https://docs.phaser.io/phaser/concepts/data-manager
+- https://docs.phaser.io/phaser/concepts/device
+- https://docs.phaser.io/phaser/concepts/display
+- https://docs.phaser.io/phaser/concepts/events
+- https://docs.phaser.io/phaser/concepts/fx
+- https://docs.phaser.io/phaser/concepts/game
+- https://docs.phaser.io/phaser/concepts/gameobjects
+- https://docs.phaser.io/phaser/concepts/gameobjects/components
+- https://docs.phaser.io/phaser/concepts/gameobjects/factories
+- https://docs.phaser.io/phaser/concepts/gameobjects/bitmap-text
+- https://docs.phaser.io/phaser/concepts/gameobjects/blitter
+- https://docs.phaser.io/phaser/concepts/gameobjects/container
+- https://docs.phaser.io/phaser/concepts/gameobjects/display-list
+- https://docs.phaser.io/phaser/concepts/gameobjects/dom-element
+- https://docs.phaser.io/phaser/concepts/gameobjects/graphics
+- https://docs.phaser.io/phaser/concepts/gameobjects/group
+- https://docs.phaser.io/phaser/concepts/gameobjects/image
+- https://docs.phaser.io/phaser/concepts/gameobjects/nine-slice
+- https://docs.phaser.io/phaser/concepts/gameobjects/particles
+- https://docs.phaser.io/phaser/concepts/gameobjects/plane
+- https://docs.phaser.io/phaser/concepts/gameobjects/render-texture
+- https://docs.phaser.io/phaser/concepts/gameobjects/rope
+- https://docs.phaser.io/phaser/concepts/gameobjects/shader
+- https://docs.phaser.io/phaser/concepts/gameobjects/sprite
+- https://docs.phaser.io/phaser/concepts/gameobjects/text
+- https://docs.phaser.io/phaser/concepts/gameobjects/tile-sprite
+- https://docs.phaser.io/phaser/concepts/gameobjects/video
+- https://docs.phaser.io/phaser/concepts/geometry
+- https://docs.phaser.io/phaser/concepts/input
+- https://docs.phaser.io/phaser/concepts/loader
+- https://docs.phaser.io/phaser/concepts/math
+- https://docs.phaser.io/phaser/concepts/physics
+- https://docs.phaser.io/phaser/concepts/scale-manager
+- https://docs.phaser.io/phaser/concepts/scenes
+- https://docs.phaser.io/phaser/concepts/textures
+- https://docs.phaser.io/phaser/concepts/time
+- https://docs.phaser.io/phaser/concepts/tweens
+- https://docs.phaser.io/phaser/concepts/utils
+- https://docs.phaser.io/api-documentation/class/time-timeline
+- https://docs.balena.io/reference/balena-cli/latest/ 

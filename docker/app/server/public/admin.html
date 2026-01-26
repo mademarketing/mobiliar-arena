@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiosk Game Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- Header -->
+    <div class="mb-8 flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Kiosk Game Admin</h1>
+        <p class="text-gray-600">Prize Management Interface</p>
+      </div>
+      <button
+        onclick="logout()"
+        class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors"
+      >
+        Logout
+      </button>
+    </div>
+
+    <!-- Statistics Dashboard -->
+    <div class="mb-8 bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4">Today's Statistics</h2>
+      <div id="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-blue-50 p-4 rounded">
+          <div class="text-sm text-gray-600">Games Played Today</div>
+          <div id="stat-games-played" class="text-2xl font-bold text-blue-600">-</div>
+        </div>
+        <div class="bg-green-50 p-4 rounded">
+          <div class="text-sm text-gray-600">Prizes Awarded (today)</div>
+          <div id="stat-inventory" class="text-2xl font-bold text-green-600">-</div>
+        </div>
+        <div class="bg-orange-50 p-4 rounded">
+          <div class="text-sm text-gray-600">Nieten</div>
+          <div id="stat-wishes" class="text-2xl font-bold text-orange-600">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="mb-6 border-b border-gray-200">
+      <nav class="-mb-px flex space-x-8">
+        <button onclick="showTab('prizes')" id="tab-prizes" class="tab-button border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
+          Prizes
+        </button>
+        <button onclick="showTab('inventory')" id="tab-inventory" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+          Daily Inventory
+        </button>
+        <button onclick="showTab('qrcodes')" id="tab-qrcodes" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+          QR Codes
+        </button>
+      </nav>
+    </div>
+
+    <!-- Prizes Tab -->
+    <div id="content-prizes" class="tab-content">
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <h2 class="text-xl font-semibold mb-4">Prize Types</h2>
+
+          <!-- Create Prize Form -->
+          <form id="create-prize-form" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Texture Key</label>
+              <input type="text" name="textureKey" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., prize1">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+              <input type="text" name="displayName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., Gold Prize">
+            </div>
+            <div class="flex items-end">
+              <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Create Prize
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Prizes Table -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Texture Key</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Display Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+              </tr>
+            </thead>
+            <tbody id="prizes-table" class="bg-white divide-y divide-gray-200">
+              <tr>
+                <td colspan="4" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Inventory Tab -->
+    <div id="content-inventory" class="tab-content hidden">
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <h2 class="text-xl font-semibold mb-4">Daily Inventory</h2>
+
+          <!-- Info about Trefferplan -->
+          <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <p class="text-sm text-blue-700">
+              <strong>Note:</strong> Daily inventory is automatically managed by the active Trefferplan configuration.
+              To change prize quantities, select a different Trefferplan in the Promoter interface.
+            </p>
+          </div>
+        </div>
+
+        <!-- Inventory Table -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prize</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Quantity</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Awarded</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table" class="bg-white divide-y divide-gray-200">
+              <tr>
+                <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Codes Tab -->
+    <div id="content-qrcodes" class="tab-content hidden">
+      <div class="bg-white rounded-lg shadow">
+        <div class="p-6 border-b border-gray-200">
+          <h2 class="text-xl font-semibold mb-4">QR Code Management</h2>
+
+          <!-- QR Code Counts -->
+          <div id="qr-code-counts" class="grid grid-cols-2 gap-4 mb-6">
+            <div class="text-center py-4 text-gray-500 col-span-2">Loading...</div>
+          </div>
+
+          <!-- Import Form -->
+          <div class="border-t pt-4">
+            <h3 class="text-lg font-medium mb-3">Import QR Codes</h3>
+            <form id="import-qr-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Prize Type</label>
+                <select name="prizeId" id="qr-prize-select" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Select prize...</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">CSV File</label>
+                <input type="file" name="file" accept=".csv" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div class="flex items-end">
+                <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                  Import
+                </button>
+              </div>
+            </form>
+            <p class="mt-2 text-sm text-gray-500">One QR code per line in the CSV file</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="message-container" class="fixed top-4 right-4 z-50"></div>
+  </div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

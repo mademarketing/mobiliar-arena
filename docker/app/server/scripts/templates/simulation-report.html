@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prize Distribution Simulation Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 2rem;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 2rem;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .stat-card .subtitle {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            margin-top: 0.25rem;
+        }
+
+        .charts {
+            padding: 2rem;
+        }
+
+        .chart-container {
+            margin-bottom: 3rem;
+        }
+
+        .chart-container h2 {
+            font-size: 1.25rem;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Prize Distribution Simulation Report</h1>
+            <p>Analysis of prize distribution algorithm performance under different traffic conditions</p>
+        </header>
+
+        <div class="summary" id="summary">
+            <!-- Summary stats will be injected here -->
+        </div>
+
+        <div class="charts">
+            <div class="chart-container">
+                <h2>Cumulative Inventory Distribution</h2>
+                <div class="chart-wrapper">
+                    <canvas id="cumulativeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h2>Prize Type Breakdown</h2>
+                <div class="chart-wrapper">
+                    <canvas id="breakdownChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h2>Hourly Traffic vs. Prize Awards</h2>
+                <div class="chart-wrapper">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* CHART_DATA_PLACEHOLDER */
+
+        // Populate summary stats
+        const summaryDiv = document.getElementById('summary');
+        summaryDiv.innerHTML = `
+            <div class="stat-card">
+                <h3>Total Plays</h3>
+                <div class="value">${chartData.summary.totalPlays}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Scheduled Prizes</h3>
+                <div class="value">${chartData.summary.scheduledPrizes}</div>
+                <div class="subtitle">${((chartData.summary.scheduledPrizes / chartData.summary.totalPlays) * 100).toFixed(1)}%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Inventory Prizes</h3>
+                <div class="value">${chartData.summary.inventoryPrizes}</div>
+                <div class="subtitle">${((chartData.summary.inventoryPrizes / chartData.summary.totalPlays) * 100).toFixed(1)}%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Consolations</h3>
+                <div class="value">${chartData.summary.consolations}</div>
+                <div class="subtitle">${((chartData.summary.consolations / chartData.summary.totalPlays) * 100).toFixed(1)}%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Inventory Win Rate</h3>
+                <div class="value">${(chartData.summary.inventoryWinRate * 100).toFixed(1)}%</div>
+                <div class="subtitle">Overall distribution</div>
+            </div>
+        `;
+
+        // Chart 1: Cumulative Inventory
+        const cumulativeCtx = document.getElementById('cumulativeChart').getContext('2d');
+        new Chart(cumulativeCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.cumulativeInventory.map(d => d.time),
+                datasets: [
+                    {
+                        label: 'Actual Distribution',
+                        data: chartData.cumulativeInventory.map(d => d.actual),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Ideal Linear Distribution',
+                        data: chartData.cumulativeInventory.map(d => d.ideal),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5],
+                        tension: 0.3,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Inventory Prizes Distributed'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time of Day'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart 2: Prize Breakdown
+        const breakdownCtx = document.getElementById('breakdownChart').getContext('2d');
+        new Chart(breakdownCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.prizeBreakdown.map(d => d.time),
+                datasets: [
+                    {
+                        label: 'Scheduled Prizes',
+                        data: chartData.prizeBreakdown.map(d => d.scheduled),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.5)',
+                        fill: true
+                    },
+                    {
+                        label: 'Inventory Prizes',
+                        data: chartData.prizeBreakdown.map(d => d.inventory),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.5)',
+                        fill: true
+                    },
+                    {
+                        label: 'Consolations',
+                        data: chartData.prizeBreakdown.map(d => d.consolation),
+                        borderColor: '#6b7280',
+                        backgroundColor: 'rgba(107, 114, 128, 0.5)',
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cumulative Count'
+                        }
+                    },
+                    x: {
+                        stacked: true,
+                        title: {
+                            display: true,
+                            text: 'Time of Day'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Chart 3: Hourly Traffic vs. Awards
+        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+        new Chart(hourlyCtx, {
+            type: 'bar',
+            data: {
+                labels: chartData.hourlyData.map(d => d.hour),
+                datasets: [
+                    {
+                        label: 'Visitors',
+                        data: chartData.hourlyData.map(d => d.visitors),
+                        backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                        borderColor: '#667eea',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Inventory Prizes Awarded',
+                        data: chartData.hourlyData.map(d => d.inventoryPrizes),
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: '#10b981',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Hour of Day'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

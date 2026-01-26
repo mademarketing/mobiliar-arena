@@ -1,0 +1,14 @@
+# Build outputs
+/dist
+/node_modules
+/.cache
+
+# Test outputs
+/playwright-report
+/test-results
+/.playwright
+
+# Test artifacts
+playwright-report/
+test-results/
+tests/e2e/reports/

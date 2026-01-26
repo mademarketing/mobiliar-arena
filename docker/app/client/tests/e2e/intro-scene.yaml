@@ -1,0 +1,27 @@
+name: Intro Scene Animation
+description: Verify Intro scene displays correctly and transitions to IconGrid
+steps:
+  # Wait for game to fully initialize and settle into Idle
+  - wait: 3000
+  - eval: "await window.__gameTest.waitForScene('idle')"
+  - wait: 500
+  - screenshot: 01-idle.png
+
+  # Trigger win - take screenshot IMMEDIATELY after to catch Intro
+  - eval: "window.__gameTest.forceWin()"
+
+  # Take screenshot immediately - Intro scene starts here
+  - wait: 100
+  - screenshot: 02-intro-text.png
+
+  # Wait a bit for icons to start animating
+  - wait: 800
+  - screenshot: 03-intro-icons.png
+
+  # Wait for all icons to appear
+  - wait: 800
+  - screenshot: 04-intro-complete.png
+
+  # Wait for auto-transition to IconGrid
+  - eval: "await window.__gameTest.waitForScene('icon-grid', 5000)"
+  - screenshot: 05-icongrid.png

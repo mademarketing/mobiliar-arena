@@ -1,0 +1,18 @@
+{
+  "standard": {
+    "name": "Standard",
+    "description": "Standard prize distribution",
+    "prizes": {
+      "prize-a": 100,
+      "prize-b": 20
+    }
+  },
+  "high-volume": {
+    "name": "High Volume",
+    "description": "Increased prizes for high-traffic events",
+    "prizes": {
+      "prize-a": 200,
+      "prize-b": 50
+    }
+  }
+}

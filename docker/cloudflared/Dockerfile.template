@@ -1,0 +1,15 @@
+# Stage 1: Get cloudflared binary from official image
+FROM cloudflare/cloudflared:latest AS cloudflared
+
+# Stage 2: Alpine with shell + cloudflared binary
+FROM alpine:latest
+
+# Copy cloudflared binary from official image
+COPY --from=cloudflared /usr/local/bin/cloudflared /usr/local/bin/cloudflared
+
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Use entrypoint that checks for TUNNEL_TOKEN
+ENTRYPOINT ["/entrypoint.sh"]

@@ -1,0 +1,62 @@
+name: Full Game Flow
+description: Complete test of the Win for Life game from start screen through icon selection to result
+
+config:
+  game_url: http://localhost:8080
+  initial_wait: 2000
+  session: full-flow-test
+
+steps:
+  - action: screenshot
+    filename: 01-start-screen.png
+    description: Initial start screen with "Buzzer drücken" prompt
+
+  - action: eval
+    script: document.getElementsByTagName("canvas").length > 0
+    save_as: canvas_exists
+    description: Verify canvas element exists
+
+  - action: key
+    key: Enter
+    description: Press Enter to start the game
+
+  - action: wait
+    duration: 1500
+    description: Wait for game transition animation
+
+  - action: screenshot
+    filename: 02-game-started.png
+    description: Game screen after starting
+
+  - action: key
+    key: Space
+    repeat: 3
+    delay: 200
+    description: Press Space 3 times to interact with game
+
+  - action: wait
+    duration: 1000
+    description: Wait for game response
+
+  - action: screenshot
+    filename: 03-game-playing.png
+    description: Game state after interactions
+
+  - action: wait
+    duration: 3000
+    description: Wait for game animations to complete
+
+  - action: screenshot
+    filename: 04-final-result.png
+    description: Final game result screen
+
+  - action: close
+    description: Close browser session
+
+expected_results:
+  - step: 1
+    expect: Start screen visible with orange background, host character, and "Buzzer drücken" text
+  - step: 3
+    expect: Game transitions to main gameplay (icon grid or wheel)
+  - step: 7
+    expect: Game shows result - either WIN or LOSE screen

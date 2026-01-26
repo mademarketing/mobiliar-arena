@@ -1,0 +1,153 @@
+phidget {
+
+	#
+	# Enables access to Phidget channels over the network.
+	# This does not disable the WWW server, and web clients may still access Phidget channels.
+	#
+	enabled: true
+
+	auth {
+		# Sets the password to connect to the server
+		#password: '<password>'
+	}
+
+	pidfile: '/var/run/phidget22networkserver.pid' # For UNIX
+
+	logging {
+		level: info							# verbose debug info warn err
+		file: 'c:/tmp/networkserver.log'
+		maxfiles: 4							# the maximum files to keep before rotation deletes them
+		maxsize: 1048576					# the maximum size of a log file before rotation
+		network {
+			enabled: true
+			port: 5771
+		}
+		source {
+			phidget22net {					# networking code
+				level: info
+			}
+			phidget22usb {					# USB code
+				level: info
+			}
+			_phidget22match {				# channel matching code
+				level: error
+			}
+			_phidget22channel {				# channel life-cycle code
+				level: error
+			}
+			_phidget22bridge {				# bridge processing code
+				level: error
+			}
+			_phidget22disp {				# dispatcher code
+				level: error
+			}
+		}
+	}
+
+	network {
+		# keepalive: 4000					# the network keepalive interval (client should be set to 2x)
+		ipv4 {
+			# address: localhost			# the address to bind
+			port: 5661						# server port
+		}
+		datagram {
+			enabled: true					# if UDP for events is allowed
+		}
+		publish {
+			enabled: true					# if the server should be published to mDNS
+			# name: 'Phidget22 Server'		# the name to publish (defaults to computer name)
+		}
+		resolveaddrs: false					# if addresses should be resolve to names (performance)
+	}
+
+	#
+	# Server features
+	#
+	feature {
+		control {
+			enabled: true					# enables the control dictionary
+		}
+		stats {
+			enabled: true					# enables the stats dictionary
+		}
+		dictionary {
+			enabled: true
+			directory: '/etc/phidgets/dictionary.d'
+			webapi {
+				enabled: false
+				adddictionary: true
+				changedictionary: true
+				removedictionary: false
+				addkey: true
+				changekey: true
+				removekey: false
+			}
+		}
+	}
+
+	#
+	# Filters access to the server
+	filter {
+		enabled: true
+		clients {
+			default: allow	# allow | deny	# controls if the default is to allow or deny connections
+			allow {
+				enabled: false				# if allow rules should be processed
+				verbose: false				# if clients that are allowed cause a log message
+				list: ['192.168.2.159', '192.168.3.120' ] # list of addresses to allow
+			}
+			deny {
+				enabled: false				# if deny rules should be processed
+				verbose: false				# if clients that are denied cause a log message
+				list: ['192.168.2.158', '192.168.3.119' ] # list of addresses to deny
+			}
+		}
+	}
+
+	#
+	# WWW Server configuration
+	#
+	www {
+		enabled: true
+
+		#
+		# The host name to use for redirects etc.
+		# This should not be specified unless there is a reason to override the host name
+		# (for example if the server is being access through a firewall).
+		#
+		# serverhost: 'chad-pc'
+
+		docroot: '/var/phidgets/www'
+		mimetypes: '/etc/phidgets/mimetypes.kv'
+		logging {
+			level: debug
+			accesslog: '/var/log/phidget22access.log'
+		}
+		network {
+			cachectrl: nocache				# prevents clients from caching results (for testing)
+			ipv4 {
+				# address: 192.168.1.1		# address to bind
+				port: 8080
+			}
+			publish {
+				enabled: true				# if the WWW server should be published to mDNS
+				# name: 'Phidget22 Server'	# the name to publish (defaults to computer name)
+			}
+		}
+		phidgets {
+			enabled: true					# controls if we allow websocket upgrades for phidgets
+			# passwd: '<password>'			# the server password
+		}
+	}
+
+	#
+	# DictionaryStore configuration
+	#
+	dictionarystore {
+		enabled: true
+		sync: 3								# how often config changes are synced
+		database {
+			directory: '/var/phidgets/dictionary.d'	# location of database files
+		}
+	}
+}

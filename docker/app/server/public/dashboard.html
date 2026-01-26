@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Win for Life Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-gray-800">
+  <div class="container mx-auto px-4 py-6 max-w-5xl">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold text-white mb-2">Win for Life</h1>
+      <p class="text-xl text-blue-200">Roadshow Dashboard</p>
+    </div>
+
+    <!-- Info Bar -->
+    <div class="card rounded-xl shadow-lg p-4 mb-6">
+      <div class="flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <span class="text-gray-500 text-sm">Maschine</span>
+          <div id="machine-name" class="text-xl font-bold text-gray-800">-</div>
+        </div>
+        <div>
+          <span class="text-gray-500 text-sm">Datum</span>
+          <div id="current-date" class="text-xl font-bold text-gray-800">-</div>
+        </div>
+        <div>
+          <span class="text-gray-500 text-sm">Uhrzeit</span>
+          <div id="current-time" class="text-xl font-bold text-gray-800">-</div>
+        </div>
+        <div>
+          <span class="text-gray-500 text-sm">Promotionsende</span>
+          <div id="promo-end-time" class="text-xl font-bold text-gray-800">-</div>
+        </div>
+        <div id="status-badge" class="px-4 py-2 rounded-full text-white font-bold">
+          -
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <!-- Total Plays -->
+      <div class="card rounded-xl shadow-lg p-6 text-center">
+        <div class="text-gray-500 text-sm mb-2">Spiele heute</div>
+        <div id="plays-today" class="text-5xl font-bold text-blue-600">-</div>
+      </div>
+
+      <!-- Wins -->
+      <div class="card rounded-xl shadow-lg p-6 text-center">
+        <div class="text-gray-500 text-sm mb-2">Gewinne</div>
+        <div id="wins-today" class="text-5xl font-bold text-green-600">-</div>
+      </div>
+
+      <!-- Win Rate -->
+      <div class="card rounded-xl shadow-lg p-6 text-center">
+        <div class="text-gray-500 text-sm mb-2">Gewinnrate</div>
+        <div id="win-rate" class="text-5xl font-bold text-purple-600">-</div>
+      </div>
+    </div>
+
+    <!-- Prize Table -->
+    <div class="card rounded-xl shadow-lg p-6 mb-6">
+      <h2 class="text-xl font-bold mb-4">Gewinnverteilung</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b-2 border-gray-200">
+              <th class="text-left py-3 px-4">Gewinn</th>
+              <th class="text-center py-3 px-4">Heute gezogen</th>
+              <th class="text-center py-3 px-4">Total hinterlegt</th>
+              <th class="text-center py-3 px-4">Verbleibend</th>
+            </tr>
+          </thead>
+          <tbody id="prize-table-body">
+            <tr>
+              <td colspan="4" class="text-center py-4 text-gray-500">Laden...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- QR Codes Section -->
+    <div class="card rounded-xl shadow-lg p-6 mb-6">
+      <h2 class="text-xl font-bold mb-4">QR-Code Vorrat</h2>
+      <div id="qr-codes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="text-center py-4 text-gray-500">Laden...</div>
+      </div>
+    </div>
+
+    <!-- Download Button -->
+    <div class="text-center mb-6">
+      <a
+        href="/api/dashboard/report"
+        class="inline-block bg-white text-blue-600 font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-blue-50 transition-colors"
+      >
+        PDF-Bericht herunterladen
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center text-blue-200 text-sm">
+      <span id="trefferplan-name">-</span> | Letzte Aktualisierung: <span id="last-updated">-</span>
+    </div>
+  </div>
+
+  <script src="/dashboard.js"></script>
+</body>
+</html>

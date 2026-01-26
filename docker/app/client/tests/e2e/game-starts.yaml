@@ -1,0 +1,10 @@
+# Test: Verify game starts when Enter is pressed
+name: Game Starts
+steps:
+  - open: http://localhost:8080
+  - wait: 2000
+  - screenshot: game-starts-01-before.png
+  - press: Enter
+  - wait: 1000
+  - screenshot: game-starts-02-after.png
+  - close: true

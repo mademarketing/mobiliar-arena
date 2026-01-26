@@ -1,0 +1,16 @@
+/.cache
+/dist
+/node_modules
+
+# Runtime data files
+/content/play-logs.csv
+/content/prize-inventory.json
+
+# Database files (schema.sql is tracked, but runtime DB is not)
+/content/*.db
+/content/*.db-shm
+/content/*.db-wal
+/content/*.db.backup
+
+# Simulation results
+/simulation-results

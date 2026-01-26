@@ -1,0 +1,3 @@
+name: kiosk-game-template
+type: sw.application
+version: "1.0.0"

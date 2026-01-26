@@ -1,0 +1,28 @@
+# base-image for node on any machine using a template variable,
+# see more about dockerfile templates here: https://www.balena.io/docs/learn/develop/dockerfile/#dockerfile-templates
+# and about balena base images here: https://www.balena.io/docs/reference/base-images/base-images/
+FROM balenalib/%%BALENA_MACHINE_NAME%%-node:20-bullseye-run
+ENV INITSYSTEM on
+USER root
+# use `install_packages` if you need to install dependencies,
+# for instance if you need git, just uncomment the line below.
+# https://forums.balena.io/t/gui-kiosk-on-prodution-resinos/3487/9
+RUN install_packages git apt-utils ca-certificates wget unzip build-essential usbutils libusb-1.0-0-dev ffmpeg v4l-utils libx264-dev libmp3lame-dev
+
+WORKDIR /usr/src/app
+COPY server/package.json package.json
+
+RUN JOBS=MAX npm install --production --unsafe-perm && npm cache verify && rm -rf /tmp/*
+
+COPY ./server/ ./
+COPY ./server/content/ ./content/
+COPY ./shared/ ./shared/
+
+# Create symlink at parent level so imports work the same in dev and prod
+# This allows ../shared/GameEvents to work from /usr/src/app/app.ts
+# and ../../shared/GameEvents to work from /usr/src/app/scripts/*.ts
+RUN ln -s /usr/src/app/shared /usr/src/shared
+
+ENV UDEV=1
+
+CMD ["/bin/bash", "./launchnodeapp.sh" ]

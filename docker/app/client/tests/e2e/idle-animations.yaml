@@ -1,0 +1,16 @@
+name: Idle Scene Animations
+description: Verify idle scene animation sequence plays correctly with logo, text, buzzer, mascot, and video animations
+
+steps:
+  - open: http://localhost:8080
+  - wait: 1000
+  - screenshot: idle-01-initial.png
+  - wait: 1500
+  - screenshot: idle-02-logo-text.png
+  - wait: 1000
+  - screenshot: idle-03-buzzer.png
+  - wait: 2500
+  - screenshot: idle-04-buzzer-pressed.png
+  - wait: 1500
+  - screenshot: idle-05-mascot-video.png
+  - close: true

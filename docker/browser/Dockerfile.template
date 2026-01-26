@@ -1,0 +1,94 @@
+ARG NODEJS_VERSION="16.19.1"
+
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian-node:${NODEJS_VERSION}-bookworm-run
+
+# install required packages
+RUN install_packages \
+    chromium-common \
+    chromium \
+    libgles2-mesa \
+    lsb-release \
+    mesa-vdpau-drivers \
+    scrot \
+    wget \
+    x11-xserver-utils \
+    xserver-xorg-input-evdev \
+    xserver-xorg-legacy \
+    xserver-xorg-video-fbdev \
+    xserver-xorg-video-intel \
+    xserver-xorg xinit \
+    xinput \
+    v4l-utils \
+    xterm \
+    ffmpeg \
+    v4l2loopback-utils \
+    v4l2loopback-dkms \
+    x11-utils \
+    x11-apps \
+    libx11-dev \
+    libxext-dev \
+    libxtst-dev \
+    build-essential \
+    x11vnc \
+    dkms \
+    usbutils \
+    alsa-utils
+
+WORKDIR /usr/src/app
+
+# install node dependencies
+COPY ./package.json /usr/src/app/package.json
+RUN JOBS=MAX npm install --unsafe-perm --production && npm cache clean --force
+COPY 20-intel.conf /usr/share/X11/xorg.conf.d/20-intel.conf
+
+# COPY .asoundrc /root/.asoundrc
+# COPY picom.conf /etc/xdg/picom.conf
+COPY ./src /usr/src/app/
+
+RUN chmod +x ./*.sh
+
+ENV UDEV=1
+
+RUN mkdir -p /etc/chromium/policies
+RUN mkdir -p /etc/chromium/policies/recommended
+COPY ./policy.json /etc/chromium/policies/recommended/my_policy.json
+
+# Add chromium user
+RUN useradd chromium -m -s /bin/bash -G root || true && \
+    groupadd -r -f chromium && id -u chromium || true \
+    && chown -R chromium:chromium /home/chromium || true
+
+COPY ./public-html /home/chromium  
+
+
+# udev rule to set specific permissions 
+RUN echo 'SUBSYSTEM=="vchiq",GROUP="video",MODE="0660"' > /etc/udev/rules.d/10-vchiq-permissions.rules
+# Add udev rules for Canon camera
+RUN echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="04a9", GROUP="video", MODE="0666"' > /etc/udev/rules.d/90-canon-camera.rules
+RUN usermod -a -G audio,video,tty chromium
+
+RUN ln -s /usr/bin/chromium /usr/bin/chromium-browser || true
+
+# Install RustDesk for remote access
+# Download latest RustDesk release for amd64
+RUN RUSTDESK_VERSION=$(wget -qO- https://api.github.com/repos/rustdesk/rustdesk/releases/latest | grep -oP '"tag_name": "\K[^"]+') && \
+    wget -q "https://github.com/rustdesk/rustdesk/releases/download/${RUSTDESK_VERSION}/rustdesk-${RUSTDESK_VERSION}-x86_64.deb" -O /tmp/rustdesk.deb && \
+    apt-get update && \
+    apt-get install -y -f /tmp/rustdesk.deb && \
+    rm /tmp/rustdesk.deb && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /root/.config/rustdesk /root/.local/share/rustdesk /root/Documents
+
+# Set up the audio block. This won't have any effect if the audio block is not being used.
+# RUN curl -skL https://raw.githubusercontent.com/balenablocks/audio/master/scripts/alsa-bridge/debian-setup.sh| sh
+# ENV PULSE_SERVER=tcp:localhost:4317
+
+COPY VERSION .
+
+# Configure X11 extensions
+RUN mkdir -p /etc/X11/xorg.conf.d
+COPY ./src/10-modules.conf /etc/X11/xorg.conf.d/
+
+# Start app
+CMD ["bash", "/usr/src/app/start.sh"]

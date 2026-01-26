@@ -18,6 +18,7 @@ import {
 import {
   reflectBallVelocity,
   degreesToRadians,
+  checkPaddleCollision,
 } from "../utils/CircularPhysics";
 
 export interface GameState {
@@ -38,9 +39,6 @@ export default class GameArena {
 
   // Balls
   private balls: Ball[];
-
-  // Physics colliders
-  private colliders: Phaser.Physics.Arcade.Collider[] = [];
 
   // Game state
   private _score: number;
@@ -133,51 +131,9 @@ export default class GameArena {
   }
 
   /**
-   * Setup physics colliders between balls and paddles
+   * Handle ball-paddle collision (manual collision detection)
    */
-  private setupColliders(): void {
-    // Clear existing colliders
-    this.clearColliders();
-
-    // Setup colliders for each paddle with each ball
-    for (const paddle of this.paddles.values()) {
-      for (const ball of this.balls) {
-        if (ball.isActive) {
-          const collider = this.scene.physics.add.overlap(
-            ball.sprite,
-            paddle.physicsGroup,
-            this.handleBallPaddleCollision as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
-            undefined,
-            this
-          );
-          this.colliders.push(collider);
-        }
-      }
-    }
-  }
-
-  /**
-   * Clear all physics colliders
-   */
-  private clearColliders(): void {
-    for (const collider of this.colliders) {
-      collider.destroy();
-    }
-    this.colliders = [];
-  }
-
-  /**
-   * Handle ball-paddle collision
-   */
-  private handleBallPaddleCollision(
-    ballSprite: Phaser.GameObjects.GameObject,
-    paddleSegment: Phaser.GameObjects.GameObject
-  ): void {
-    const ball = (ballSprite as Phaser.Physics.Arcade.Sprite).getData("ballInstance") as Ball;
-    const paddle = (paddleSegment as Phaser.Physics.Arcade.Sprite).getData("paddleInstance") as Paddle;
-
-    if (!ball || !paddle || !ball.isActive) return;
-
+  private handleBallPaddleCollision(ball: Ball, paddle: Paddle): void {
     // Check collision cooldown to prevent double-bouncing
     const now = Date.now();
     const lastCollision = this.recentCollisions.get(ball.id) ?? 0;
@@ -228,7 +184,7 @@ export default class GameArena {
     this._ballSpawnTimer = this.scene.time.addEvent({
       delay: BALL.SPAWN_INTERVAL_MS,
       callback: () => {
-        if (this.balls.filter((b) => b.isActive).length < BALL.MAX_BALLS) {
+        if (this.ballCount < BALL.MAX_BALLS) {
           this.spawnBall();
         }
       },
@@ -253,17 +209,11 @@ export default class GameArena {
   stop(): void {
     this._isRunning = false;
 
-    if (this._ballSpawnTimer) {
-      this._ballSpawnTimer.remove();
-      this._ballSpawnTimer = undefined;
-    }
+    this._ballSpawnTimer?.remove();
+    this._ballSpawnTimer = undefined;
 
-    if (this._difficultyTimer) {
-      this._difficultyTimer.remove();
-      this._difficultyTimer = undefined;
-    }
-
-    this.clearColliders();
+    this._difficultyTimer?.remove();
+    this._difficultyTimer = undefined;
   }
 
   /**
@@ -273,19 +223,6 @@ export default class GameArena {
     const ball = new Ball(this.scene);
     ball.spawn();
     this.balls.push(ball);
-
-    // Setup colliders for new ball with all paddles
-    for (const paddle of this.paddles.values()) {
-      const collider = this.scene.physics.add.overlap(
-        ball.sprite,
-        paddle.physicsGroup,
-        this.handleBallPaddleCollision as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
-        undefined,
-        this
-      );
-      this.colliders.push(collider);
-    }
-
     return ball;
   }
 
@@ -309,7 +246,7 @@ export default class GameArena {
    * Called every frame from scene update
    * @param delta - Time delta in milliseconds
    */
-  update(delta: number): void {
+  update(_delta: number): void {
     if (!this._isRunning) {
       return;
     }
@@ -318,6 +255,27 @@ export default class GameArena {
     const now = Date.now();
     if (now - this._lastBounceTime > GAME.COMBO_TIMEOUT_MS) {
       this._combo = 0;
+    }
+
+    // Manual collision detection between balls and paddles
+    for (const ball of this.balls) {
+      if (!ball.isActive) continue;
+
+      for (const paddle of this.paddles.values()) {
+        if (
+          checkPaddleCollision(
+            ball.x,
+            ball.y,
+            BALL.RADIUS,
+            paddle.angle,
+            paddle.arcWidth,
+            paddle.innerRadius,
+            paddle.outerRadius
+          )
+        ) {
+          this.handleBallPaddleCollision(ball, paddle);
+        }
+      }
     }
 
     // Check ball bounds (circular arena boundary)
@@ -341,7 +299,7 @@ export default class GameArena {
     });
 
     // Clean up collision cooldowns for destroyed balls
-    const activeBallIds = new Set(this.balls.map(b => b.id));
+    const activeBallIds = new Set(this.balls.map((b) => b.id));
     for (const id of this.recentCollisions.keys()) {
       if (!activeBallIds.has(id)) {
         this.recentCollisions.delete(id);
@@ -363,11 +321,6 @@ export default class GameArena {
     this.destroyPaddles();
     this.createPaddles();
     this.drawArena();
-
-    // Re-setup colliders
-    if (this._isRunning) {
-      this.setupColliders();
-    }
   }
 
   /**
@@ -385,11 +338,6 @@ export default class GameArena {
     this.destroyPaddles();
     this.createPaddles();
     this.drawArena();
-
-    // Re-setup colliders
-    if (this._isRunning) {
-      this.setupColliders();
-    }
   }
 
   /**
@@ -409,7 +357,7 @@ export default class GameArena {
     return {
       score: this._score,
       combo: this._combo,
-      ballsInPlay: this.balls.filter((b) => b.isActive).length,
+      ballsInPlay: this.ballCount,
       timeRemaining: 0, // Managed by Game scene
       isGameOver: !this._isRunning,
     };

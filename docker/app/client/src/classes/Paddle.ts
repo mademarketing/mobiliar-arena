@@ -1,8 +1,8 @@
 /**
- * Paddle - A player's paddle using Arcade Physics
+ * Paddle - A player's paddle
  *
  * Renders as an arc segment on the edge of the arena.
- * Uses a physics group of small bodies to approximate the arc for collisions.
+ * Collision detection is handled manually in GameArena using checkPaddleCollision().
  */
 
 import Phaser from "phaser";
@@ -16,13 +16,8 @@ import {
   degreesToRadians,
 } from "../utils/CircularPhysics";
 
-const COLLISION_SEGMENTS = 8; // Number of small bodies to approximate the arc
-
 export default class Paddle {
-  private scene: Phaser.Scene;
   private graphics: Phaser.GameObjects.Graphics;
-  private collisionGroup: Phaser.Physics.Arcade.StaticGroup;
-  private collisionBodies: Phaser.Physics.Arcade.Sprite[] = [];
 
   private _playerIndex: number;
   private paddleIndex: number; // Position index (0 to totalPlayers-1)
@@ -41,7 +36,6 @@ export default class Paddle {
     paddleIndex: number,
     totalPlayers: number
   ) {
-    this.scene = scene;
     this._playerIndex = playerIndex;
     this.paddleIndex = paddleIndex;
     this.totalPlayers = totalPlayers;
@@ -66,60 +60,8 @@ export default class Paddle {
     this.graphics = scene.add.graphics();
     this.graphics.setDepth(DEPTH.PADDLES);
 
-    // Create physics collision group
-    this.collisionGroup = scene.physics.add.staticGroup();
-    this.createCollisionBodies();
-
     // Initial draw
     this.draw();
-  }
-
-  /**
-   * Create small physics bodies to approximate the arc shape
-   */
-  private createCollisionBodies(): void {
-    // Create a small texture for collision bodies
-    const key = `paddle_segment_${this._playerIndex}`;
-    if (!this.scene.textures.exists(key)) {
-      const segmentWidth = 20;
-      const segmentHeight = this._outerRadius - this._innerRadius;
-      const graphics = this.scene.add.graphics();
-      graphics.fillStyle(0xffffff, 0); // Invisible
-      graphics.fillRect(0, 0, segmentWidth, segmentHeight);
-      graphics.generateTexture(key, segmentWidth, segmentHeight);
-      graphics.destroy();
-    }
-
-    // Create collision bodies along the arc
-    for (let i = 0; i < COLLISION_SEGMENTS; i++) {
-      const body = this.collisionGroup.create(0, 0, key) as Phaser.Physics.Arcade.Sprite;
-      body.setVisible(false); // Invisible - graphics handle visuals
-      body.setData("paddleInstance", this);
-      body.setData("segmentIndex", i);
-      this.collisionBodies.push(body);
-    }
-
-    this.updateCollisionBodies();
-  }
-
-  /**
-   * Update collision body positions to match current paddle angle
-   */
-  private updateCollisionBodies(): void {
-    const segmentArc = this._arcWidth / COLLISION_SEGMENTS;
-    const startAngle = this._angle - this._arcWidth / 2 + segmentArc / 2;
-    const midRadius = (this._innerRadius + this._outerRadius) / 2;
-
-    for (let i = 0; i < COLLISION_SEGMENTS; i++) {
-      const segmentAngle = startAngle + i * segmentArc;
-      const pos = polarToCartesian(segmentAngle, midRadius);
-      const body = this.collisionBodies[i];
-
-      body.setPosition(pos.x, pos.y);
-      // Rotate body to align with arc tangent
-      body.setAngle(segmentAngle);
-      body.refreshBody();
-    }
   }
 
   // Getters
@@ -147,9 +89,6 @@ export default class Paddle {
   get outerRadius(): number {
     return this._outerRadius;
   }
-  get physicsGroup(): Phaser.Physics.Arcade.StaticGroup {
-    return this.collisionGroup;
-  }
 
   /**
    * Update paddle position based on input
@@ -158,32 +97,23 @@ export default class Paddle {
    * @param delta - Time delta in milliseconds
    */
   update(leftPressed: boolean, rightPressed: boolean, delta: number): void {
-    if (!leftPressed && !rightPressed) {
+    // Only move if exactly one direction is pressed
+    if (leftPressed === rightPressed) {
       return;
     }
 
     // Calculate movement (degrees per second * seconds)
     const deltaSeconds = delta / 1000;
-    let movement = 0;
-
-    if (leftPressed && !rightPressed) {
-      movement = -PADDLE.MOVE_SPEED * deltaSeconds;
-    } else if (rightPressed && !leftPressed) {
-      movement = PADDLE.MOVE_SPEED * deltaSeconds;
-    }
-
-    if (movement === 0) {
-      return;
-    }
+    const movement = leftPressed
+      ? -PADDLE.MOVE_SPEED * deltaSeconds
+      : PADDLE.MOVE_SPEED * deltaSeconds;
 
     // Apply movement with boundary checking
     const newAngle = normalizeAngle(this._angle + movement);
 
-    // Check if new position is within bounds
     if (this.isAngleInRange(newAngle)) {
       this._angle = newAngle;
       this.draw();
-      this.updateCollisionBodies();
     }
   }
 
@@ -268,7 +198,6 @@ export default class Paddle {
     this._angle = getPaddleAngle(this.paddleIndex, this.totalPlayers);
 
     this.draw();
-    this.updateCollisionBodies();
   }
 
   /**
@@ -279,7 +208,6 @@ export default class Paddle {
     const minArc = PADDLE.MIN_ARC_DEGREES;
     this._arcWidth = Math.max(this._arcWidth * factor, minArc);
     this.draw();
-    this.updateCollisionBodies();
   }
 
   /**
@@ -304,7 +232,5 @@ export default class Paddle {
    */
   destroy(): void {
     this.graphics.destroy();
-    this.collisionGroup.destroy(true);
-    this.collisionBodies = [];
   }
 }

@@ -41,7 +41,8 @@ tmp/
 temp/
 
 # Claude Code
-.claude/data/
+.claude/
+**/.claude/
 worktrees/
 
 # Python cache

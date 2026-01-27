@@ -44,7 +44,7 @@ export const PADDLE = {
 
 // Ball Configuration
 export const BALL = {
-  RADIUS: 15,
+  RADIUS: 23, // 50% larger than original 15
   BASE_SPEED: 250, // Pixels per second (Arcade Physics)
   MAX_SPEED: 500,
   SPEED_INCREMENT: 25, // Speed increase per bounce
@@ -110,7 +110,7 @@ export const THEMES = {
 export const EFFECTS = {
   BALL_TRAIL_LENGTH: 5,
   BALL_TRAIL_ALPHA: 0.3,
-  BALL_ROTATION_SPEED: 0.1, // radians per pixel traveled
+  BALL_ROTATION_SPEED: 0.05, // radians per pixel traveled
   PADDLE_GLOW_INTENSITY: 0.4,
   PADDLE_GLOW_RADIUS: 12,
   PADDLE_SHRINK_DURATION: 500, // ms for shrink animation

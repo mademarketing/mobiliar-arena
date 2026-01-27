@@ -19,7 +19,7 @@ Start both game server and client in background processes for local development.
 1. Start backend: `cd docker/app/server && npm run start` (background)
 2. Start frontend: `cd docker/app/client && npm run dev` (background)
 3. Report both processes are running with access URL
-4. Open chrome against the frontend URL
+4. Open Chrome in guest mode against the frontend URL: `open -a "Google Chrome" --args --guest http://localhost:8000`
 
 ## Report
 

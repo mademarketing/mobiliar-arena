@@ -100,8 +100,8 @@ export default class GameArena {
     this.graphics.clear();
 
     // Arena fill
-    this.graphics.fillStyle(COLORS.ARENA_FILL, 1);
-    this.graphics.fillCircle(ARENA.CENTER_X, ARENA.CENTER_Y, ARENA.RADIUS);
+   //this.graphics.fillStyle(COLORS.ARENA_FILL, 1);
+    //this.graphics.fillCircle(ARENA.CENTER_X, ARENA.CENTER_Y, ARENA.RADIUS);
 
     // Arena border
     this.graphics.lineStyle(ARENA.BORDER_WIDTH, COLORS.ARENA_BORDER, 1);

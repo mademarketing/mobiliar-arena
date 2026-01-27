@@ -273,7 +273,7 @@ export default class Result extends Phaser.Scene {
 
     // Camera flash for extra impact
     this.time.delayedCall(800, () => {
-      this.cameras.main.flash(200, 255, 215, 0, false, 0.5);
+      this.cameras.main.flash(200, 255, 215, 0);
     });
   }
 

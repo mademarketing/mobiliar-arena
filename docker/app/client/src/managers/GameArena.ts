@@ -226,7 +226,7 @@ export default class GameArena {
    */
   private onComboMilestone(combo: number): void {
     // Camera flash
-    this.scene.cameras.main.flash(100, 255, 255, 255, false, 0.3);
+    this.scene.cameras.main.flash(100, 255, 255, 255);
 
     // Large milestone text
     createMilestoneText(
@@ -248,7 +248,7 @@ export default class GameArena {
     }
 
     // Brief red pulse on arena border
-    this.scene.cameras.main.flash(50, 255, 100, 100, false, 0.2);
+    this.scene.cameras.main.flash(50, 255, 100, 100);
 
     // Show difficulty text
     createFloatingText(

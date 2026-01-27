@@ -14,6 +14,7 @@ import {
   PLAYER,
   DEPTH,
   ANIMATION_DURATION,
+  GAME,
 } from "../consts/GameConstants";
 import {
   polarToCartesian,
@@ -26,8 +27,14 @@ interface PlayerSlot {
   isJoined: boolean;
   joinProgress: number; // 0-1
   graphics: Phaser.GameObjects.Graphics;
+  glowGraphics: Phaser.GameObjects.Graphics;
   text: Phaser.GameObjects.Text;
   progressArc: Phaser.GameObjects.Graphics;
+}
+
+interface PlayerKeys {
+  left: Phaser.Input.Keyboard.Key;
+  right: Phaser.Input.Keyboard.Key;
 }
 
 export default class Lobby extends Phaser.Scene {
@@ -41,6 +48,7 @@ export default class Lobby extends Phaser.Scene {
   private joinedPlayers: Set<number> = new Set();
   private holdStartTimes: Map<number, number> = new Map();
   private autoStartTimer?: Phaser.Time.TimerEvent;
+  private playerKeys: PlayerKeys[] = [];
 
   constructor() {
     super(SceneKeys.Lobby);
@@ -107,6 +115,11 @@ export default class Lobby extends Phaser.Scene {
       const angle = (i * 360) / PLAYER.MAX_PLAYERS;
       const pos = polarToCartesian(angle, slotRadius);
 
+      // Glow graphics (behind slot)
+      const glowGraphics = this.add.graphics();
+      glowGraphics.setDepth(DEPTH.UI_ELEMENTS - 1);
+      glowGraphics.setBlendMode(Phaser.BlendModes.ADD);
+
       // Slot background
       const graphics = this.add.graphics();
       graphics.setDepth(DEPTH.UI_ELEMENTS);
@@ -130,6 +143,7 @@ export default class Lobby extends Phaser.Scene {
         isJoined: false,
         joinProgress: 0,
         graphics,
+        glowGraphics,
         text,
         progressArc,
       };
@@ -140,7 +154,7 @@ export default class Lobby extends Phaser.Scene {
   }
 
   /**
-   * Draw a player slot
+   * Draw a player slot with glow effect during hold
    */
   private drawSlot(slot: PlayerSlot): void {
     const slotRadius = ARENA.RADIUS + 80;
@@ -150,6 +164,7 @@ export default class Lobby extends Phaser.Scene {
 
     slot.graphics.clear();
     slot.progressArc.clear();
+    slot.glowGraphics.clear();
 
     if (slot.isJoined) {
       // Filled circle for joined player
@@ -159,6 +174,10 @@ export default class Lobby extends Phaser.Scene {
       slot.graphics.strokeCircle(pos.x, pos.y, 40);
       slot.text.setColor("#ffffff");
       slot.text.setText(`P${slot.index + 1}`);
+
+      // Subtle glow for joined players
+      slot.glowGraphics.fillStyle(color, 0.2);
+      slot.glowGraphics.fillCircle(pos.x, pos.y, 50);
     } else {
       // Empty circle for waiting slot
       slot.graphics.lineStyle(3, color, 0.5);
@@ -168,8 +187,16 @@ export default class Lobby extends Phaser.Scene {
       // Show key hint
       slot.text.setText(`${slot.index + 1}`);
 
-      // Draw join progress arc
+      // Draw join progress arc and glow
       if (slot.joinProgress > 0) {
+        // Pulsing glow effect that intensifies with progress
+        const glowAlpha = 0.3 * slot.joinProgress;
+        const glowRadius = 50 + 10 * slot.joinProgress;
+
+        slot.glowGraphics.fillStyle(color, glowAlpha);
+        slot.glowGraphics.fillCircle(pos.x, pos.y, glowRadius);
+
+        // Progress arc
         slot.progressArc.lineStyle(6, color, 1);
         slot.progressArc.beginPath();
         slot.progressArc.arc(
@@ -210,7 +237,7 @@ export default class Lobby extends Phaser.Scene {
 
     // Instructions
     this.instructionText = this.add
-      .text(centerX, ARENA.CENTER_Y, "Press a number key (1-6) to join", {
+      .text(centerX, ARENA.CENTER_Y, "Hold BOTH buttons for 3 seconds to join", {
         fontFamily: "MuseoSans, sans-serif",
         fontSize: "36px",
         color: "#cccccc",
@@ -244,16 +271,45 @@ export default class Lobby extends Phaser.Scene {
    * Setup input handling
    */
   private setupInput(): void {
-    // Number keys 1-6 for instant join (dev mode)
-    this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
-      const keyNum = parseInt(event.key);
-      if (keyNum >= 1 && keyNum <= PLAYER.MAX_PLAYERS) {
-        this.togglePlayer(keyNum - 1);
-      }
-    });
+    const keyboard = this.input.keyboard;
+    if (!keyboard) return;
 
-    // Enter to force start
-    this.input.keyboard?.on("keydown-ENTER", () => {
+    // Create keys for all 6 players
+    this.playerKeys = [
+      // Player 1: Arrow keys
+      {
+        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
+        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
+      },
+      // Player 2: A/D
+      {
+        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
+        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
+      },
+      // Player 3: J/L
+      {
+        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J),
+        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L),
+      },
+      // Player 4: Numpad 4/6
+      {
+        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_FOUR),
+        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_SIX),
+      },
+      // Player 5: U/O
+      {
+        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U),
+        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.O),
+      },
+      // Player 6: B/M
+      {
+        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B),
+        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M),
+      },
+    ];
+
+    // Enter to force start (dev convenience)
+    keyboard.on("keydown-ENTER", () => {
       if (this.joinedPlayers.size >= PLAYER.MIN_PLAYERS) {
         this.startGame();
       }
@@ -261,26 +317,71 @@ export default class Lobby extends Phaser.Scene {
   }
 
   /**
-   * Toggle a player's join status
+   * Join a player with pop animation (one-way - no leaving once joined)
    */
-  private togglePlayer(playerIndex: number): void {
+  private joinPlayer(playerIndex: number): void {
     const slot = this.playerSlots[playerIndex];
-    if (!slot) return;
+    if (!slot || slot.isJoined) return;
 
-    if (this.joinedPlayers.has(playerIndex)) {
-      // Leave
-      this.joinedPlayers.delete(playerIndex);
-      slot.isJoined = false;
-      slot.joinProgress = 0;
-    } else {
-      // Join
-      this.joinedPlayers.add(playerIndex);
-      slot.isJoined = true;
-      slot.joinProgress = 1;
-    }
-
+    this.joinedPlayers.add(playerIndex);
+    slot.isJoined = true;
+    slot.joinProgress = 0;
     this.drawSlot(slot);
+
+    // Pop animation for the slot
+    const slotRadius = ARENA.RADIUS + 80;
+    const angle = (slot.index * 360) / PLAYER.MAX_PLAYERS;
+    const pos = polarToCartesian(angle, slotRadius);
+
+    // Scale pop effect using graphics
+    slot.graphics.setScale(0.5);
+    this.tweens.add({
+      targets: slot.graphics,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 300,
+      ease: "Back.out",
+    });
+
+    // Text pop effect
+    slot.text.setScale(0.5);
+    this.tweens.add({
+      targets: slot.text,
+      scaleX: 1,
+      scaleY: 1,
+      duration: 300,
+      ease: "Back.out",
+    });
+
+    // Particle burst effect
+    this.createJoinParticleBurst(pos.x, pos.y, PLAYER.COLORS[playerIndex]);
+
     this.updateUI();
+  }
+
+  /**
+   * Create particle burst effect when player joins
+   */
+  private createJoinParticleBurst(x: number, y: number, color: number): void {
+    if (!this.textures.exists("particle")) return;
+
+    const particles = this.add.particles(x, y, "particle", {
+      speed: { min: 80, max: 150 },
+      scale: { start: 0.6, end: 0 },
+      alpha: { start: 1, end: 0 },
+      lifespan: 500,
+      quantity: 12,
+      tint: color,
+      blendMode: Phaser.BlendModes.ADD,
+      emitting: false,
+    });
+
+    particles.setDepth(DEPTH.PARTICLES);
+    particles.explode(12);
+
+    this.time.delayedCall(600, () => {
+      particles.destroy();
+    });
   }
 
   /**
@@ -358,9 +459,48 @@ export default class Lobby extends Phaser.Scene {
     this.scene.start(SceneKeys.Countdown, { players });
   }
 
-  update(_time: number, _delta: number): void {
-    // Update join progress for players holding both buttons
-    // (This would work with Phidgets - for keyboard we use instant toggle)
+  update(time: number, _delta: number): void {
+    for (let i = 0; i < PLAYER.MAX_PLAYERS; i++) {
+      const keys = this.playerKeys[i];
+      if (!keys) continue;
+
+      const slot = this.playerSlots[i];
+      if (!slot) continue;
+
+      // Skip already joined players (no leave option)
+      if (slot.isJoined) continue;
+
+      const bothDown = keys.left.isDown && keys.right.isDown;
+
+      if (bothDown) {
+        // Start tracking if not already
+        if (!this.holdStartTimes.has(i)) {
+          this.holdStartTimes.set(i, time);
+        }
+
+        // Calculate progress
+        const startTime = this.holdStartTimes.get(i)!;
+        const elapsed = time - startTime;
+        const progress = Math.min(1, elapsed / GAME.JOIN_HOLD_MS);
+
+        // Update slot visual
+        slot.joinProgress = progress;
+        this.drawSlot(slot);
+
+        // Check if hold complete
+        if (progress >= 1) {
+          this.joinPlayer(i);
+          this.holdStartTimes.delete(i);
+        }
+      } else {
+        // Released - reset progress
+        if (this.holdStartTimes.has(i) || slot.joinProgress > 0) {
+          this.holdStartTimes.delete(i);
+          slot.joinProgress = 0;
+          this.drawSlot(slot);
+        }
+      }
+    }
   }
 
   shutdown(): void {
@@ -376,10 +516,12 @@ export default class Lobby extends Phaser.Scene {
     // Clean up player slots
     for (const slot of this.playerSlots) {
       slot.graphics.destroy();
+      slot.glowGraphics.destroy();
       slot.text.destroy();
       slot.progressArc.destroy();
     }
     this.playerSlots = [];
+    this.playerKeys = [];
 
     this.backdrop?.destroy();
     this.backdrop = undefined;

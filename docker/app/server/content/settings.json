@@ -3,6 +3,8 @@
     "title": "Kiosk Game",
     "version": "1.0.0"
   },
+  "theme": "basketball",
+  "availableThemes": ["basketball", "handball", "volleyball", "floorball", "corporate"],
   "prizes": {
     "operatingHours": {
       "openTime": "10:00",

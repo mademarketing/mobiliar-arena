@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { CANVAS, DEPTH } from "../consts/GameConstants";
 import TextureKeys from "../consts/TextureKeys";
+import ThemeManager from "../managers/ThemeManager";
 
 /**
  * Configuration options for the animated backdrop
@@ -8,8 +9,10 @@ import TextureKeys from "../consts/TextureKeys";
 export interface BackdropConfig {
   /** Enable animated sparkles (default: true) */
   animateSparkles?: boolean;
-  /** Background texture key (default: TextureKeys.Background) */
+  /** Background texture key (default: theme background or TextureKeys.Background) */
   backgroundTexture?: string;
+  /** Use theme background (default: true) */
+  useTheme?: boolean;
 }
 
 /**
@@ -30,9 +33,22 @@ export default class AnimatedBackdrop {
 
   constructor(scene: Phaser.Scene, config: BackdropConfig = {}) {
     this.scene = scene;
+
+    // Determine background texture: prefer theme, fallback to default
+    let backgroundTexture = config.backgroundTexture;
+    if (!backgroundTexture && config.useTheme !== false) {
+      const themeManager = ThemeManager.getInstance();
+      const themeKey = themeManager.getBackgroundKey();
+      if (scene.textures.exists(themeKey)) {
+        backgroundTexture = themeKey;
+      }
+    }
+    backgroundTexture = backgroundTexture ?? TextureKeys.Background;
+
     this.config = {
       animateSparkles: config.animateSparkles ?? true,
-      backgroundTexture: config.backgroundTexture ?? TextureKeys.Background,
+      backgroundTexture,
+      useTheme: config.useTheme ?? true,
     };
 
     this.container = scene.add.container(0, 0);
@@ -82,6 +98,11 @@ export default class AnimatedBackdrop {
       gfx.destroy();
     }
 
+    // Get theme-specific colors for particles
+    const themeManager = ThemeManager.getInstance();
+    const themeColors = themeManager.getThemeColors();
+    const sparkleColors = [0xffffff, ...themeColors.slice(0, 2)];
+
     // Create particle emitter with optimized settings
     this.sparkleEmitter = this.scene.add.particles(0, 0, sparkleKey, {
       x: { min: 0, max: CANVAS.WIDTH },
@@ -91,7 +112,7 @@ export default class AnimatedBackdrop {
       quantity: 1,
       scale: { start: 0, end: 0, ease: "quad.out" },
       alpha: { start: 0, end: 0 },
-      tint: [0xffffff, 0xffd700, 0x4ecdc4],
+      tint: sparkleColors,
       blendMode: Phaser.BlendModes.ADD,
       maxAliveParticles: 38,
     });

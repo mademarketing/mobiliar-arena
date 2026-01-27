@@ -2,6 +2,7 @@
  * GameArena - Manages the circular Pong game arena using Arcade Physics
  *
  * Handles players, paddles, balls, collisions, scoring, and game progression.
+ * Includes visual effects for collisions, score popups, and combo milestones.
  */
 
 import Phaser from "phaser";
@@ -14,12 +15,16 @@ import {
   SCORING,
   DEPTH,
   COLORS,
+  EFFECTS,
 } from "../consts/GameConstants";
 import {
   reflectBallVelocity,
   degreesToRadians,
   checkPaddleCollision,
+  polarToCartesian,
 } from "../utils/CircularPhysics";
+import { createCollisionEffect } from "../utils/CollisionEffect";
+import { createFloatingText, createMilestoneText } from "../utils/FloatingText";
 
 export interface GameState {
   score: number;
@@ -157,6 +162,7 @@ export default class GameArena {
     ball.increaseSpeed();
 
     // Update score
+    const previousCombo = this._combo;
     this._combo++;
     const multiplier = Math.min(
       1 + (this._combo - 1) * SCORING.COMBO_MULTIPLIER,
@@ -165,6 +171,94 @@ export default class GameArena {
     const points = Math.round(SCORING.POINTS_PER_BOUNCE * multiplier);
     this._score += points;
     this._lastBounceTime = now;
+
+    // Visual effects
+    this.createCollisionVisuals(ball, paddle, points, previousCombo);
+  }
+
+  /**
+   * Create visual effects for collision
+   */
+  private createCollisionVisuals(
+    ball: Ball,
+    paddle: Paddle,
+    points: number,
+    previousCombo: number
+  ): void {
+    // Calculate hit position (on the paddle arc)
+    const hitPos = polarToCartesian(paddle.angle, paddle.outerRadius - 10);
+
+    // Collision particle burst
+    createCollisionEffect(this.scene, hitPos.x, hitPos.y, paddle.color);
+
+    // Paddle hit flash
+    paddle.onHit();
+
+    // Score popup
+    const scoreText = this._combo > 1 ? `+${points} x${this._combo}` : `+${points}`;
+    createFloatingText(
+      this.scene,
+      hitPos.x,
+      hitPos.y - 20,
+      scoreText,
+      "#4ecdc4",
+      "28px"
+    );
+
+    // Check for combo milestone
+    this.checkComboMilestone(previousCombo, this._combo);
+  }
+
+  /**
+   * Check and trigger combo milestone effects
+   */
+  private checkComboMilestone(previousCombo: number, newCombo: number): void {
+    for (const milestone of EFFECTS.COMBO_MILESTONES) {
+      if (previousCombo < milestone && newCombo >= milestone) {
+        this.onComboMilestone(milestone);
+        break;
+      }
+    }
+  }
+
+  /**
+   * Trigger combo milestone effect
+   */
+  private onComboMilestone(combo: number): void {
+    // Camera flash
+    this.scene.cameras.main.flash(100, 255, 255, 255, false, 0.3);
+
+    // Large milestone text
+    createMilestoneText(
+      this.scene,
+      ARENA.CENTER_X,
+      ARENA.CENTER_Y - 100,
+      `COMBO x${combo}!`,
+      "#ffe66d"
+    );
+  }
+
+  /**
+   * Increase difficulty (shrink paddles with visual feedback)
+   */
+  private increaseDifficulty(): void {
+    // Shrink all paddles
+    for (const paddle of this.paddles.values()) {
+      paddle.shrink(0.95); // Shrink by 5%
+    }
+
+    // Brief red pulse on arena border
+    this.scene.cameras.main.flash(50, 255, 100, 100, false, 0.2);
+
+    // Show difficulty text
+    createFloatingText(
+      this.scene,
+      ARENA.CENTER_X,
+      ARENA.CENTER_Y + 150,
+      "DIFFICULTY UP",
+      "#ff6b6b",
+      "24px"
+    );
   }
 
   /**
@@ -195,9 +289,7 @@ export default class GameArena {
     this._difficultyTimer = this.scene.time.addEvent({
       delay: 10000, // Every 10 seconds
       callback: () => {
-        for (const paddle of this.paddles.values()) {
-          paddle.shrink(0.95); // Shrink by 5%
-        }
+        this.increaseDifficulty();
       },
       loop: true,
     });
@@ -251,16 +343,21 @@ export default class GameArena {
       return;
     }
 
-    // Check combo timeout
     const now = Date.now();
+
+    // Check combo timeout
     if (now - this._lastBounceTime > GAME.COMBO_TIMEOUT_MS) {
       this._combo = 0;
     }
 
-    // Manual collision detection between balls and paddles
+    // Update ball visuals and check collisions
     for (const ball of this.balls) {
       if (!ball.isActive) continue;
 
+      // Update ball visual effects (rotation, trail)
+      ball.updateVisuals(now);
+
+      // Check paddle collisions
       for (const paddle of this.paddles.values()) {
         if (
           checkPaddleCollision(

@@ -2,6 +2,7 @@
  * Result Scene - Team score display
  *
  * Shows final score, "Besser zusammen" message, and player count.
+ * Includes enhanced confetti celebration and high score detection.
  * Auto-returns to Lobby after 10 seconds.
  */
 
@@ -10,7 +11,7 @@ import SceneKeys from "../consts/SceneKeys";
 import TextureKeys from "../consts/TextureKeys";
 import GamePlugin from "../plugins/GamePlugin";
 import GameEvents from "../../../shared/GameEvents";
-import { CANVAS, DEPTH, ANIMATION_DURATION, GAME } from "../consts/GameConstants";
+import { CANVAS, DEPTH, ANIMATION_DURATION, GAME, PLAYER } from "../consts/GameConstants";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 
 interface GameResult {
@@ -40,6 +41,7 @@ export default class Result extends Phaser.Scene {
   private gamePlugin?: GamePlugin;
   private autoDismissTimer?: Phaser.Time.TimerEvent;
   private backdrop?: AnimatedBackdrop;
+  private confettiEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
 
   // Legacy prize mode
   private isWin = false;
@@ -47,6 +49,7 @@ export default class Result extends Phaser.Scene {
 
   // Team game mode
   private gameResult?: GameResult;
+  private highScore: number = 0;
 
   constructor() {
     super(SceneKeys.Result);
@@ -73,6 +76,9 @@ export default class Result extends Phaser.Scene {
   create(): void {
     this.gamePlugin = this.plugins.get("GamePlugin") as GamePlugin;
     this.events.once("shutdown", this.shutdown, this);
+
+    // Get high score from registry
+    this.highScore = this.game.registry.get("highScore") || 0;
 
     // Animated backdrop
     this.backdrop = new AnimatedBackdrop(this).create();
@@ -119,8 +125,10 @@ export default class Result extends Phaser.Scene {
   private createTeamScoreDisplay(centerX: number, centerY: number): void {
     if (!this.gameResult) return;
 
-    // "Besser zusammen" tagline
-    this.add
+    const isNewHighScore = this.gameResult.score > this.highScore;
+
+    // "Besser zusammen" tagline with animated entrance
+    const tagline = this.add
       .text(centerX, 100, "Besser zusammen", {
         fontFamily: "MuseoSansBold, sans-serif",
         fontSize: "48px",
@@ -134,7 +142,19 @@ export default class Result extends Phaser.Scene {
         },
       })
       .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
+      .setDepth(DEPTH.UI_ELEMENTS)
+      .setScale(0)
+      .setAlpha(0);
+
+    // Animate tagline entrance with bounce
+    this.tweens.add({
+      targets: tagline,
+      scale: 1,
+      alpha: 1,
+      duration: 500,
+      ease: "Back.out",
+      delay: 200,
+    });
 
     // Team Score label
     this.add
@@ -146,9 +166,9 @@ export default class Result extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(DEPTH.UI_ELEMENTS);
 
-    // Large score number
+    // Large score number with dramatic reveal
     const scoreText = this.add
-      .text(centerX, centerY, String(this.gameResult.score), {
+      .text(centerX, centerY, "0", {
         fontFamily: "MuseoSansBold, sans-serif",
         fontSize: "200px",
         color: "#ffffff",
@@ -161,7 +181,17 @@ export default class Result extends Phaser.Scene {
         },
       })
       .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
+      .setDepth(DEPTH.UI_ELEMENTS)
+      .setScale(0.5);
+
+    // Scale up score text dramatically
+    this.tweens.add({
+      targets: scoreText,
+      scale: 1,
+      duration: 400,
+      ease: "Back.out",
+      delay: 100,
+    });
 
     // Animate score counting up
     this.animateScoreCount(scoreText, this.gameResult.score);
@@ -176,7 +206,15 @@ export default class Result extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(DEPTH.UI_ELEMENTS);
 
-    // Celebration effect
+    // NEW HIGH SCORE banner if applicable
+    if (isNewHighScore) {
+      this.createHighScoreBanner(centerX, centerY);
+      // Save new high score
+      this.game.registry.set("highScore", this.gameResult.score);
+    }
+
+    // Enhanced celebration effect
+    this.createConfetti(isNewHighScore);
     this.addCelebrationEffect(centerX, centerY);
 
     // "Play again" hint
@@ -188,6 +226,93 @@ export default class Result extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(DEPTH.UI_ELEMENTS);
+  }
+
+  /**
+   * Create NEW HIGH SCORE banner
+   */
+  private createHighScoreBanner(centerX: number, _centerY: number): void {
+    const banner = this.add
+      .text(centerX, 180, "NEW HIGH SCORE!", {
+        fontFamily: "MuseoSansBold, sans-serif",
+        fontSize: "42px",
+        color: "#ffd700",
+        shadow: {
+          offsetX: 3,
+          offsetY: 3,
+          color: "#333333",
+          blur: 0,
+          fill: true,
+        },
+      })
+      .setOrigin(0.5)
+      .setDepth(DEPTH.UI_ELEMENTS + 10)
+      .setScale(0)
+      .setAlpha(0);
+
+    // Dramatic entrance
+    this.tweens.add({
+      targets: banner,
+      scale: 1.2,
+      alpha: 1,
+      duration: 300,
+      ease: "Back.out",
+      delay: 800,
+      onComplete: () => {
+        // Pulse effect
+        this.tweens.add({
+          targets: banner,
+          scale: { from: 1.2, to: 1.0 },
+          duration: 400,
+          ease: "Sine.inOut",
+          yoyo: true,
+          repeat: -1,
+        });
+      },
+    });
+
+    // Camera flash for extra impact
+    this.time.delayedCall(800, () => {
+      this.cameras.main.flash(200, 255, 215, 0, false, 0.5);
+    });
+  }
+
+  /**
+   * Create enhanced confetti particle effect
+   */
+  private createConfetti(isNewHighScore: boolean): void {
+    if (!this.textures.exists("confetti")) return;
+
+    const colors = [
+      ...PLAYER.COLORS,
+      0xffd700, // Gold
+    ];
+
+    const quantity = isNewHighScore ? 5 : 3;
+    const frequency = isNewHighScore ? 30 : 50;
+
+    this.confettiEmitter = this.add.particles(CANVAS.WIDTH / 2, -50, "confetti", {
+      x: { min: -CANVAS.WIDTH / 2, max: CANVAS.WIDTH / 2 },
+      speed: { min: 100, max: 300 },
+      angle: { min: 80, max: 100 },
+      rotate: { min: 0, max: 360 },
+      scale: { start: 0.8, end: 0.3 },
+      alpha: { start: 1, end: 0.6 },
+      lifespan: 4000,
+      gravityY: 200,
+      tint: colors,
+      quantity,
+      frequency,
+    });
+
+    this.confettiEmitter.setDepth(DEPTH.PARTICLES);
+
+    // Stop confetti after a while
+    this.time.delayedCall(6000, () => {
+      if (this.confettiEmitter) {
+        this.confettiEmitter.stop();
+      }
+    });
   }
 
   /**
@@ -321,5 +446,11 @@ export default class Result extends Phaser.Scene {
     this.input.keyboard?.off("keydown-SPACE", this.returnToLobby, this);
     this.backdrop?.destroy();
     this.backdrop = undefined;
+
+    if (this.confettiEmitter) {
+      this.confettiEmitter.stop();
+      this.confettiEmitter.destroy();
+      this.confettiEmitter = undefined;
+    }
   }
 }

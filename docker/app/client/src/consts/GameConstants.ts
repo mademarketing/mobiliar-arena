@@ -100,6 +100,27 @@ export const SESSION = {
   STATS_REFRESH_INTERVAL_MS: 30000, // 30 seconds
 } as const;
 
+// Theme Configuration
+export const THEMES = {
+  AVAILABLE: ['basketball', 'handball', 'volleyball', 'floorball', 'corporate'] as const,
+  DEFAULT: 'basketball',
+} as const;
+
+// Visual Effects Configuration
+export const EFFECTS = {
+  BALL_TRAIL_LENGTH: 5,
+  BALL_TRAIL_ALPHA: 0.3,
+  BALL_ROTATION_SPEED: 0.1, // radians per pixel traveled
+  PADDLE_GLOW_INTENSITY: 0.4,
+  PADDLE_GLOW_RADIUS: 12,
+  PADDLE_SHRINK_DURATION: 500, // ms for shrink animation
+  COLLISION_PARTICLES: 8,
+  COLLISION_PARTICLE_SPEED: 150,
+  FLOATING_TEXT_DURATION: 800,
+  FLOATING_TEXT_RISE: 50,
+  COMBO_MILESTONES: [5, 10, 15, 20, 25, 30] as const,
+} as const;
+
 // Default export
 const GameConstants = {
   CANVAS,
@@ -113,6 +134,8 @@ const GameConstants = {
   DEPTH,
   COLORS,
   SESSION,
+  THEMES,
+  EFFECTS,
 };
 
 export default GameConstants;

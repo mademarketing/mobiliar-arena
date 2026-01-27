@@ -1,0 +1,40 @@
+name: Visual Polish Verification
+description: Test Phase 3 visual polish features including themes, effects, and animations
+steps:
+  # Initial lobby state
+  - screenshot: lobby-initial
+
+  # Player 1 join (hold both keys for 3 seconds)
+  - keys:
+      - key: "ArrowLeft"
+        duration: 3000
+        hold: true
+      - key: "ArrowRight"
+        duration: 3000
+        hold: true
+  - wait: 500
+  - screenshot: lobby-player-joined
+
+  # Player 2 join
+  - keys:
+      - key: "a"
+        duration: 3000
+        hold: true
+      - key: "d"
+        duration: 3000
+        hold: true
+  - wait: 500
+  - screenshot: lobby-two-players
+
+  # Start game
+  - keys:
+      - key: "Enter"
+  - wait: 4000
+  - screenshot: game-playing
+
+  # Wait for some gameplay with effects
+  - wait: 10000
+  - screenshot: game-with-effects
+
+  # Verify game state
+  - eval: "game.scene.getScene('Game') !== null"

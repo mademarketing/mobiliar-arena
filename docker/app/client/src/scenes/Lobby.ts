@@ -237,7 +237,7 @@ export default class Lobby extends Phaser.Scene {
 
     // Instructions
     this.instructionText = this.add
-      .text(centerX, ARENA.CENTER_Y, "Hold BOTH buttons for 3 seconds to join", {
+      .text(centerX, ARENA.CENTER_Y, "Beide Tasten drücken und 3 Sekunden halten", {
         fontFamily: "MuseoSans, sans-serif",
         fontSize: "36px",
         color: "#cccccc",

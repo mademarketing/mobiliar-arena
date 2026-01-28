@@ -161,29 +161,21 @@ export default class GameArena {
     ball.setVelocity(newVelocity.x, newVelocity.y);
     ball.increaseSpeed();
 
-    // Update score
-    const previousCombo = this._combo;
-    this._combo++;
-    const multiplier = Math.min(
-      1 + (this._combo - 1) * SCORING.COMBO_MULTIPLIER,
-      SCORING.MAX_COMBO_MULTIPLIER
-    );
-    const points = Math.round(SCORING.POINTS_PER_BOUNCE * multiplier);
+    // Update score (simple points, no combo)
+    const points = SCORING.POINTS_PER_BOUNCE;
     this._score += points;
-    this._lastBounceTime = now;
 
-    // Visual effects
-    this.createCollisionVisuals(ball, paddle, points, previousCombo);
+    // Visual effects (no combo)
+    this.createCollisionVisuals(ball, paddle, points);
   }
 
   /**
    * Create visual effects for collision
    */
   private createCollisionVisuals(
-    ball: Ball,
+    _ball: Ball,
     paddle: Paddle,
-    points: number,
-    previousCombo: number
+    points: number
   ): void {
     // Calculate hit position (on the paddle arc)
     const hitPos = polarToCartesian(paddle.angle, paddle.outerRadius - 10);
@@ -195,18 +187,14 @@ export default class GameArena {
     paddle.onHit();
 
     // Score popup
-    const scoreText = this._combo > 1 ? `+${points} x${this._combo}` : `+${points}`;
     createFloatingText(
       this.scene,
       hitPos.x,
       hitPos.y - 20,
-      scoreText,
+      `+${points}`,
       "#4ecdc4",
       "28px"
     );
-
-    // Check for combo milestone
-    this.checkComboMilestone(previousCombo, this._combo);
   }
 
   /**

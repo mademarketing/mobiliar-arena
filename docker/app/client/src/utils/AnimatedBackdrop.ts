@@ -46,7 +46,7 @@ export default class AnimatedBackdrop {
     backgroundTexture = backgroundTexture ?? TextureKeys.Background;
 
     this.config = {
-      animateSparkles: config.animateSparkles ?? true,
+      animateSparkles: config.animateSparkles ?? false,
       backgroundTexture,
       useTheme: config.useTheme ?? true,
     };

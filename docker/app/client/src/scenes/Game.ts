@@ -12,12 +12,16 @@ import Phaser from "phaser";
 import SceneKeys from "../consts/SceneKeys";
 import {
   CANVAS,
+  ARENA,
   GAME,
+  PLAYER,
   DEPTH,
   PLAYER_KEYS,
+  PLAYER_KEY_HINTS,
 } from "../consts/GameConstants";
 import GameArena from "../managers/GameArena";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
+import { polarToCartesian } from "../utils/CircularPhysics";
 
 export default class Game extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
@@ -67,6 +71,20 @@ export default class Game extends Phaser.Scene {
 
     // Initialize game arena
     this.gameArena = new GameArena(this, this.players);
+
+    // Key hint labels outside the arena for each active player
+    for (const playerIndex of this.players) {
+      const angle = (playerIndex * 360) / PLAYER.MAX_PLAYERS;
+      const pos = polarToCartesian(angle, ARENA.RADIUS + 80);
+      this.add
+        .text(pos.x, pos.y, PLAYER_KEY_HINTS[playerIndex] ?? `P${playerIndex + 1}`, {
+          fontFamily: "MuseoSansBold, sans-serif",
+          fontSize: "22px",
+          color: "#444444",
+        })
+        .setOrigin(0.5)
+        .setDepth(DEPTH.UI_ELEMENTS);
+    }
 
     // Create UI
     this.createUI();

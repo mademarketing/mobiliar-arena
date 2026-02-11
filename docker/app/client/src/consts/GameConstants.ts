@@ -107,14 +107,15 @@ export const THEMES = {
 } as const;
 
 // Player Keyboard Mapping (raw key codes to avoid Phaser import)
-// Each player has a left and right key for paddle control / join gesture
+// "left" = counter-clockwise, "right" = clockwise
+// Smaller number is clockwise (right), except P5 where 9 is CW and P6 where ← is CW
 export const PLAYER_KEYS = [
-  { left: 49, right: 50 },   // P1: 1 / 2
-  { left: 51, right: 52 },   // P2: 3 / 4
-  { left: 53, right: 54 },   // P3: 5 / 6
-  { left: 55, right: 56 },   // P4: 7 / 8
-  { left: 57, right: 48 },   // P5: 9 / 0
-  { left: 37, right: 39 },   // P6: Arrow Left / Arrow Right
+  { left: 50, right: 49 },   // P1: 2=CCW / 1=CW
+  { left: 52, right: 51 },   // P2: 4=CCW / 3=CW
+  { left: 54, right: 53 },   // P3: 6=CCW / 5=CW
+  { left: 56, right: 55 },   // P4: 8=CCW / 7=CW
+  { left: 48, right: 57 },   // P5: 0=CCW / 9=CW
+  { left: 39, right: 37 },   // P6: →=CCW / ←=CW
 ] as const;
 
 // Key hint labels for Lobby display

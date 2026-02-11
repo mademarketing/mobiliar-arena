@@ -13,6 +13,7 @@ import {
   BALL,
   GAME,
   PLAYER,
+  PADDLE,
   SCORING,
   DEPTH,
   COLORS,
@@ -232,23 +233,28 @@ export default class GameArena {
    * Increase difficulty (shrink paddles with visual feedback)
    */
   private increaseDifficulty(): void {
+    // Check if any paddle can still shrink
+    const canShrink = [...this.paddles.values()].some(
+      (p) => p.arcWidth > PADDLE.MIN_ARC_DEGREES
+    );
+
     // Shrink all paddles
     for (const paddle of this.paddles.values()) {
-      paddle.shrink(0.95); // Shrink by 5%
+      paddle.shrink(0.90); // Shrink by 10%
     }
 
-    // Brief red pulse on arena border
-    this.scene.cameras.main.flash(50, 255, 100, 100);
-
-    // Show difficulty text
-    createFloatingText(
-      this.scene,
-      ARENA.CENTER_X,
-      ARENA.CENTER_Y + 150,
-      "DIFFICULTY UP",
-      "#ff6b6b",
-      "24px"
-    );
+    // Only show visual feedback if paddles actually shrank
+    if (canShrink) {
+      this.scene.cameras.main.flash(50, 255, 100, 100);
+      createFloatingText(
+        this.scene,
+        ARENA.CENTER_X,
+        ARENA.CENTER_Y + 150,
+        "DIFFICULTY UP",
+        "#ff6b6b",
+        "24px"
+      );
+    }
   }
 
   /**
@@ -277,7 +283,7 @@ export default class GameArena {
 
     // Setup difficulty progression (shrink paddles over time)
     this._difficultyTimer = this.scene.time.addEvent({
-      delay: 10000, // Every 10 seconds
+      delay: 5000, // Every 5 seconds
       callback: () => {
         this.increaseDifficulty();
       },

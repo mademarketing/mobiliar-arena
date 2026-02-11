@@ -177,10 +177,6 @@ export default class Paddle {
     // Close path
     this.graphics.closePath();
     this.graphics.fillPath();
-
-    // Draw outline
-    this.graphics.lineStyle(3, 0xffffff, 0.8);
-    this.graphics.strokePath();
   }
 
   /**
@@ -240,15 +236,24 @@ export default class Paddle {
     if (targetArc >= this._arcWidth) return;
 
     this._isShrinking = true;
+    const startArc = this._arcWidth;
+    const delta = startArc - targetArc;
 
-    this.scene.tweens.add({
-      targets: this,
-      _arcWidth: targetArc,
+    // Use a counter tween since Phaser can't tween private fields
+    this.scene.tweens.addCounter({
+      from: 0,
+      to: 1,
       duration: EFFECTS.PADDLE_SHRINK_DURATION,
       ease: "Cubic.out",
-      onUpdate: () => this.draw(),
+      onUpdate: (tween) => {
+        const progress = tween.getValue() ?? 0;
+        this._arcWidth = startArc - delta * progress;
+        this.draw();
+      },
       onComplete: () => {
+        this._arcWidth = targetArc;
         this._isShrinking = false;
+        this.draw();
       },
     });
   }

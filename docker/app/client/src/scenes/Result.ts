@@ -79,45 +79,6 @@ export default class Result extends Phaser.Scene {
 
     const isNewHighScore = this.gameResult.score > this.highScore;
 
-    // "Besser zusammen" tagline with animated entrance
-    const tagline = this.add
-      .text(centerX, 100, "Besser zusammen", {
-        fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "48px",
-        color: "#4ecdc4",
-        shadow: {
-          offsetX: 2,
-          offsetY: 2,
-          color: "#333333",
-          blur: 0,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS)
-      .setScale(0)
-      .setAlpha(0);
-
-    // Animate tagline entrance with bounce
-    this.tweens.add({
-      targets: tagline,
-      scale: 1,
-      alpha: 1,
-      duration: 500,
-      ease: "Back.out",
-      delay: 200,
-    });
-
-    // Team Score label
-    this.add
-      .text(centerX, centerY - 150, "TEAM SCORE", {
-        fontFamily: "MuseoSans, sans-serif",
-        fontSize: "36px",
-        color: "#888888",
-      })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
-
     // Large score number with dramatic reveal
     const scoreText = this.add
       .text(centerX, centerY, "0", {
@@ -148,16 +109,6 @@ export default class Result extends Phaser.Scene {
     // Animate score counting up
     this.animateScoreCount(scoreText, this.gameResult.score);
 
-    // Player count
-    this.add
-      .text(centerX, centerY + 180, `${this.gameResult.playerCount} Players`, {
-        fontFamily: "MuseoSans, sans-serif",
-        fontSize: "32px",
-        color: "#888888",
-      })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
-
     // NEW HIGH SCORE banner if applicable
     if (isNewHighScore) {
       this.createHighScoreBanner(centerX, centerY);
@@ -169,15 +120,6 @@ export default class Result extends Phaser.Scene {
     this.createConfetti(isNewHighScore);
     this.addCelebrationEffect(centerX, centerY);
 
-    // "Play again" hint
-    this.add
-      .text(centerX, CANVAS.HEIGHT - 80, "Press SPACE to play again", {
-        fontFamily: "MuseoSans, sans-serif",
-        fontSize: "28px",
-        color: "#666666",
-      })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
   }
 
   /**

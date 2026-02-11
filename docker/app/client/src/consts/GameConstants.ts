@@ -35,7 +35,7 @@ export const PLAYER = {
 
 // Paddle Configuration
 export const PADDLE = {
-  INNER_RADIUS: 400, // Distance from center to paddle inner edge
+  INNER_RADIUS: 425, // Distance from center to paddle inner edge
   OUTER_RADIUS: 450, // Distance from center to paddle outer edge (matches ARENA.RADIUS)
   BASE_ARC_DEGREES: 40, // Base paddle arc width in degrees
   MIN_ARC_DEGREES: 20, // Minimum paddle arc after difficulty scaling

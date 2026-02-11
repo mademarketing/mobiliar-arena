@@ -48,7 +48,7 @@ export default class Lobby extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
   private arenaGraphics?: Phaser.GameObjects.Graphics;
   private playerSlots: PlayerSlot[] = [];
-  private titleText?: Phaser.GameObjects.Text;
+
   private instructionText?: Phaser.GameObjects.Text;
   private playerCountText?: Phaser.GameObjects.Text;
   private startHintText?: Phaser.GameObjects.Text;
@@ -289,23 +289,6 @@ export default class Lobby extends Phaser.Scene {
   private createUI(): void {
     const centerX = CANVAS.WIDTH / 2;
 
-    // Title
-    this.titleText = this.add
-      .text(centerX, 80, "MOBILIAR ARENA", {
-        fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "72px",
-        color: "#ffffff",
-        shadow: {
-          offsetX: 3,
-          offsetY: 3,
-          color: "#333333",
-          blur: 0,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
-
     // Instructions
     this.instructionText = this.add
       .text(centerX, ARENA.CENTER_Y, "", {
@@ -316,24 +299,22 @@ export default class Lobby extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(DEPTH.UI_ELEMENTS);
 
-    // Player count
+    // Player count (top-left, matching Game scene style)
     this.playerCountText = this.add
-      .text(centerX, CANVAS.HEIGHT - 120, "Waiting for players...", {
+      .text(50, 50, "Waiting for players...", {
         fontFamily: "MuseoSans, sans-serif",
-        fontSize: "32px",
+        fontSize: "24px",
         color: "#888888",
       })
-      .setOrigin(0.5)
       .setDepth(DEPTH.UI_ELEMENTS);
 
-    // Start hint (hidden initially)
+    // Start hint (below player count, hidden initially)
     this.startHintText = this.add
-      .text(centerX, CANVAS.HEIGHT - 60, "Press ENTER to start", {
-        fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "36px",
+      .text(50, 80, "Press ENTER to start", {
+        fontFamily: "MuseoSans, sans-serif",
+        fontSize: "24px",
         color: "#4ecdc4",
       })
-      .setOrigin(0.5)
       .setDepth(DEPTH.UI_ELEMENTS)
       .setAlpha(0);
   }
@@ -573,8 +554,6 @@ export default class Lobby extends Phaser.Scene {
     this.backdrop = undefined;
     this.arenaGraphics?.destroy();
     this.arenaGraphics = undefined;
-    this.titleText?.destroy();
-    this.titleText = undefined;
     this.instructionText?.destroy();
     this.instructionText = undefined;
     this.playerCountText?.destroy();

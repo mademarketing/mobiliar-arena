@@ -338,6 +338,21 @@ export default class Lobby extends Phaser.Scene {
         this.startGame();
       }
     });
+
+    // Quick-fill shortcuts (dev convenience)
+    // D = 2 players (P1 + P4), T = 3 players (P1 + P3 + P5), S = 6 players
+    keyboard.on("keydown-D", () => {
+      for (const i of [0, 3]) this.joinPlayer(i);
+      this.startGame();
+    });
+    keyboard.on("keydown-T", () => {
+      for (const i of [0, 2, 4]) this.joinPlayer(i);
+      this.startGame();
+    });
+    keyboard.on("keydown-S", () => {
+      for (let i = 0; i < PLAYER.MAX_PLAYERS; i++) this.joinPlayer(i);
+      this.startGame();
+    });
   }
 
   /**

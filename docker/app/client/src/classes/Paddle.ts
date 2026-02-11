@@ -38,16 +38,17 @@ export default class Paddle {
     scene: Phaser.Scene,
     playerIndex: number,
     paddleIndex: number,
-    totalPlayers: number
+    totalPlayers: number,
+    arcPlayerCount?: number
   ) {
     this.scene = scene;
     this._playerIndex = playerIndex;
     this.paddleIndex = paddleIndex;
     this.totalPlayers = totalPlayers;
 
-    // Initialize position
+    // Initialize position (totalPlayers for slot position, arcPlayerCount for size)
     this._angle = getPaddleAngle(this.paddleIndex, this.totalPlayers);
-    this._arcWidth = getPaddleArcLength(this.totalPlayers);
+    this._arcWidth = getPaddleArcLength(arcPlayerCount ?? this.totalPlayers);
 
     // Set color based on player index
     this._color = PLAYER.COLORS[playerIndex % PLAYER.COLORS.length];

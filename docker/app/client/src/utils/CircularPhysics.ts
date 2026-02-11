@@ -73,9 +73,8 @@ export function getPaddleAngle(
  * @returns Arc width in degrees
  */
 export function getPaddleArcLength(totalPlayers: number): number {
-  // Base arc divided by a factor that scales with player count
-  // 2 players: 40 degrees, 6 players: ~26 degrees
-  const arcDegrees = PADDLE.BASE_ARC_DEGREES - (totalPlayers - 2) * 3;
+  // 2 players: 60 degrees, 6 players: 28 degrees (linear scale)
+  const arcDegrees = 60 - (totalPlayers - 2) * 8;
   return Math.max(arcDegrees, PADDLE.MIN_ARC_DEGREES);
 }
 

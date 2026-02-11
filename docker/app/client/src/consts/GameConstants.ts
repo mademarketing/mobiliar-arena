@@ -56,7 +56,7 @@ export const BALL = {
 export const GAME = {
   DURATION_MS: 60000, // 60 seconds
   COUNTDOWN_SECONDS: 3,
-  JOIN_HOLD_MS: 1500, // Hold buttons for 1.5 seconds to join
+  JOIN_HOLD_MS: 1000, // Hold buttons for 1 second to join
   RESULT_DISPLAY_MS: 10000, // Show result for 10 seconds
   COMBO_TIMEOUT_MS: 2000, // Combo resets after 2 seconds without bounce
 } as const;

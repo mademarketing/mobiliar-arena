@@ -128,10 +128,11 @@ export default class GameArena {
    * Create paddles for all active players
    */
   private createPaddles(): void {
-    for (let i = 0; i < this.activePlayers.length; i++) {
+    const actualCount = this.activePlayers.length;
+    for (let i = 0; i < actualCount; i++) {
       const playerIndex = this.activePlayers[i];
-      // Use playerIndex and MAX_PLAYERS so paddles stay at their lobby slot positions
-      const paddle = new Paddle(this.scene, playerIndex, playerIndex, PLAYER.MAX_PLAYERS);
+      // MAX_PLAYERS for fixed slot position, actualCount for arc sizing
+      const paddle = new Paddle(this.scene, playerIndex, playerIndex, PLAYER.MAX_PLAYERS, actualCount);
       this.paddles.set(playerIndex, paddle);
     }
   }

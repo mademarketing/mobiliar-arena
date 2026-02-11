@@ -22,11 +22,11 @@ describe("SettingsLoader", () => {
       },
       prizes: {
         prizeTypes: {
-          winforlife: {
+          "prize-a": {
             type: "inventory",
             inventory: [["2025-11-24", 200]],
-            textureKey: "winforlife",
-            displayName: "Win for Life Ticket",
+            textureKey: "prize-a",
+            displayName: "Prize A",
           },
         },
         consolationWishes: Array(30).fill("Test wish"),
@@ -90,11 +90,11 @@ describe("SettingsLoader", () => {
       },
       prizes: {
         prizeTypes: {
-          winforlife: {
+          "prize-a": {
             type: "inventory",
             inventory: [["2025-11-24", 200]],
-            textureKey: "winforlife",
-            displayName: "Win for Life Ticket",
+            textureKey: "prize-a",
+            displayName: "Prize A",
           },
         },
         consolationWishes: Array(30).fill("Test wish"),

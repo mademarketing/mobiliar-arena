@@ -27,7 +27,7 @@ interface ReportData {
 /**
  * Report Generator Service
  *
- * Generates PDF reports for the Win for Life roadshow kiosk.
+ * Generates PDF reports for the Mobiliar Arena event.
  * Reports include prize distribution statistics, QR code inventory,
  * and daily operation summaries.
  */
@@ -111,7 +111,7 @@ export class ReportGenerator {
         doc.on('error', reject);
 
         // Header
-        doc.fontSize(24).font('Helvetica-Bold').text('Win for Life', { align: 'center' });
+        doc.fontSize(24).font('Helvetica-Bold').text('Mobiliar Arena', { align: 'center' });
         doc.fontSize(16).font('Helvetica').text('Tagesbericht', { align: 'center' });
         doc.moveDown(0.3);
 

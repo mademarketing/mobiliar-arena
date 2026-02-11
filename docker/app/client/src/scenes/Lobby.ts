@@ -15,6 +15,8 @@ import {
   DEPTH,
   ANIMATION_DURATION,
   GAME,
+  PLAYER_KEYS,
+  PLAYER_KEY_HINTS,
 } from "../consts/GameConstants";
 import {
   polarToCartesian,
@@ -185,7 +187,7 @@ export default class Lobby extends Phaser.Scene {
       slot.text.setColor("#666666");
 
       // Show key hint
-      slot.text.setText(`${slot.index + 1}`);
+      slot.text.setText(PLAYER_KEY_HINTS[slot.index] ?? `P${slot.index + 1}`);
 
       // Draw join progress arc and glow
       if (slot.joinProgress > 0) {
@@ -274,39 +276,11 @@ export default class Lobby extends Phaser.Scene {
     const keyboard = this.input.keyboard;
     if (!keyboard) return;
 
-    // Create keys for all 6 players
-    this.playerKeys = [
-      // Player 1: Arrow keys
-      {
-        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
-        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
-      },
-      // Player 2: A/D
-      {
-        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-      },
-      // Player 3: J/L
-      {
-        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J),
-        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L),
-      },
-      // Player 4: Numpad 4/6
-      {
-        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_FOUR),
-        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NUMPAD_SIX),
-      },
-      // Player 5: U/O
-      {
-        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.U),
-        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.O),
-      },
-      // Player 6: B/M
-      {
-        left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B),
-        right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M),
-      },
-    ];
+    // Create keys for all 6 players from shared mapping
+    this.playerKeys = PLAYER_KEYS.map((mapping) => ({
+      left: keyboard.addKey(mapping.left),
+      right: keyboard.addKey(mapping.right),
+    }));
 
     // Enter to force start (dev convenience)
     keyboard.on("keydown-ENTER", () => {

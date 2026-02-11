@@ -7,7 +7,7 @@ import { Request, Response, NextFunction } from 'express';
  * even though system is network-isolated and requires physical access.
  *
  * Passwords stored in environment variables:
- * - ADMIN_PASSWORD: For admin panel (default: 'swisslos2026')
+ * - ADMIN_PASSWORD: For admin panel (default: 'mobiliar2026')
  * - PROMOTER_PASSWORD: For promoter panel (default: 'promoter2026')
  */
 
@@ -37,7 +37,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
  */
 export function loginHandler(req: Request, res: Response): void {
   const { password } = req.body;
-  const correctPassword = process.env.ADMIN_PASSWORD || 'swisslos2026';
+  const correctPassword = process.env.ADMIN_PASSWORD || 'mobiliar2026';
 
   if (password === correctPassword) {
     req.session.authenticated = true;

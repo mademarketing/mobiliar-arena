@@ -52,9 +52,6 @@ export default class Bootstrap extends Phaser.Scene {
     this.scene.stop(SceneKeys.Preload);
     console.log("Bootstrap: Preload finished");
 
-    // DEV: Skip directly to Game scene for testing
-    this.scene.start(SceneKeys.Game, {
-      players: [0, 1],
-    });
+    this.scene.start(SceneKeys.Lobby);
   }
 }

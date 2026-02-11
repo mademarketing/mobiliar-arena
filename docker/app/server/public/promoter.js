@@ -226,14 +226,14 @@ function updateStatsUI(data) {
   // Update statistics cards
   document.getElementById('stat-total-plays').textContent = data.totalPlays;
 
-  // Count WFL and SWFL from awarded inventory prizes
+  // Count prizes from awarded inventory
   const awardedPrizes = data.awarded?.inventory || [];
-  const wfl = awardedPrizes.filter(p => p.displayName === 'Win for Life').length;
-  const swfl = awardedPrizes.filter(p => p.displayName === 'Super Win for Life').length;
+  const prizeA = awardedPrizes.filter(p => p.displayName === 'Prize A').length;
+  const prizeB = awardedPrizes.filter(p => p.displayName === 'Prize B').length;
 
   // Display prize counts
-  document.getElementById('stat-wfl').textContent = wfl;
-  document.getElementById('stat-swfl').textContent = swfl;
+  document.getElementById('stat-prize-a').textContent = prizeA;
+  document.getElementById('stat-prize-b').textContent = prizeB;
   document.getElementById('stat-consolations').textContent = data.prizes?.consolation || 0;
 
   // Update pause state
@@ -282,7 +282,7 @@ function updateTrefferplanUI(data) {
   // Show description of selected plan
   const active = data.configs.find(c => c.isActive);
   if (active) {
-    description.textContent = `${active.description} (WFL: ${active.prizes.wfl}, SWFL: ${active.prizes.swfl})`;
+    description.textContent = `${active.description} (Prize A: ${active.prizes.prizeA || 0}, Prize B: ${active.prizes.prizeB || 0})`;
   }
 }
 

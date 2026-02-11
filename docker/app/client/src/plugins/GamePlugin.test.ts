@@ -17,10 +17,11 @@ vi.mock("socket.io-client", () => ({
 
 describe("GamePlugin", () => {
   it("should have correct GameEvents constants", () => {
-    expect(GameEvents.BuzzerPress).toBeDefined();
     expect(GameEvents.Reload).toBeDefined();
     expect(GameEvents.PreloadFinished).toBeDefined();
-    expect(typeof GameEvents.BuzzerPress).toBe("string");
+    expect(GameEvents.GamePaused).toBeDefined();
+    expect(GameEvents.GameResumed).toBeDefined();
+    expect(typeof GameEvents.Reload).toBe("string");
   });
 
   it("should mock socket.io connection", async () => {

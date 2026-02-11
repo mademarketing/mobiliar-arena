@@ -13,7 +13,7 @@ export type PrizeType = "scheduled" | "inventory" | "consolation";
  * Prize outcome returned to the client
  */
 export interface PrizeOutcome {
-  /** Unique identifier for the prize (e.g., "giftcard-10", "winforlife-ticket") */
+  /** Unique identifier for the prize (e.g., "giftcard-10", "prize-a") */
   prizeId: string;
   /** Type of prize awarded */
   prizeType: PrizeType;

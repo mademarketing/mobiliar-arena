@@ -106,6 +106,22 @@ export const THEMES = {
   DEFAULT: 'basketball',
 } as const;
 
+// Player Keyboard Mapping (raw key codes to avoid Phaser import)
+// Each player has a left and right key for paddle control / join gesture
+export const PLAYER_KEYS = [
+  { left: 49, right: 50 },   // P1: 1 / 2
+  { left: 51, right: 52 },   // P2: 3 / 4
+  { left: 53, right: 54 },   // P3: 5 / 6
+  { left: 55, right: 56 },   // P4: 7 / 8
+  { left: 57, right: 48 },   // P5: 9 / 0
+  { left: 37, right: 39 },   // P6: Arrow Left / Arrow Right
+] as const;
+
+// Key hint labels for Lobby display
+export const PLAYER_KEY_HINTS = [
+  "1/2", "3/4", "5/6", "7/8", "9/0", "←/→",
+] as const;
+
 // Visual Effects Configuration
 export const EFFECTS = {
   BALL_TRAIL_LENGTH: 5,
@@ -135,6 +151,8 @@ const GameConstants = {
   COLORS,
   SESSION,
   THEMES,
+  PLAYER_KEYS,
+  PLAYER_KEY_HINTS,
   EFFECTS,
 };
 

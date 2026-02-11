@@ -140,7 +140,7 @@ describe("SimulationReporter", () => {
     reporter.addDataPoint({
       timestamp: new Date("2025-11-24T10:00:00"),
       prizeType: "inventory",
-      prizeId: "winforlife",
+      prizeId: "prize-a",
       probability: 0.2,
       inventoryGiven: 1,
       inventoryRemaining: 199,
@@ -170,7 +170,7 @@ describe("SimulationReporter", () => {
       reporter.addDataPoint({
         timestamp: new Date(`2025-11-24T${10 + Math.floor(i / 10)}:00:00`),
         prizeType: prizeType as any,
-        prizeId: prizeType === "inventory" ? "winforlife" : prizeType,
+        prizeId: prizeType === "inventory" ? "prize-a" : prizeType,
         probability: prizeType === "inventory" ? 0.25 : undefined,
         inventoryGiven: prizeType === "inventory" ? Math.floor(i / 5) : 0,
         inventoryRemaining: 200 - Math.floor(i / 5),
@@ -214,7 +214,7 @@ describe("SimulationReporter", () => {
     reporter.addDataPoint({
       timestamp: new Date("2025-11-24T10:00:00"),
       prizeType: "inventory",
-      prizeId: "winforlife",
+      prizeId: "prize-a",
       inventoryGiven: 1,
       inventoryRemaining: 199,
       visitorCount: 1,
@@ -249,7 +249,7 @@ describe("Simulation Integration", () => {
       reporter.addDataPoint({
         timestamp: visitors[i],
         prizeType: prizeType as any,
-        prizeId: prizeType === "inventory" ? "winforlife" : "consolation",
+        prizeId: prizeType === "inventory" ? "prize-a" : "consolation",
         probability: prizeType === "inventory" ? 0.2 : undefined,
         inventoryGiven: Math.floor(i / 5),
         inventoryRemaining: 200 - Math.floor(i / 5),

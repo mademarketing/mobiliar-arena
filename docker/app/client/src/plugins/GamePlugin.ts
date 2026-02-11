@@ -29,17 +29,6 @@ export default class GamePlugin extends Phaser.Plugins.BasePlugin {
       location.reload();
     });
 
-    this._socket.on(GameEvents.BuzzerPress, (channel: number) => {
-      console.log("Button pressed on channel:", channel);
-      this._events.emit(GameEvents.BuzzerPress, channel);
-    });
-
-    // Prize awarded event
-    this._socket.on(GameEvents.PrizeAwarded, (outcome: any) => {
-      console.log("Prize awarded:", outcome);
-      this._events.emit(GameEvents.PrizeAwarded, outcome);
-    });
-
     // Game pause/resume events - update global state and emit
     this._socket.on(GameEvents.GamePaused, (payload: any) => {
       console.log("Game paused event from server:", payload);

@@ -8,9 +8,6 @@
 
 import Phaser from "phaser";
 import SceneKeys from "../consts/SceneKeys";
-import TextureKeys from "../consts/TextureKeys";
-import GamePlugin from "../plugins/GamePlugin";
-import GameEvents from "../../../shared/GameEvents";
 import { CANVAS, DEPTH, ANIMATION_DURATION, GAME, PLAYER } from "../consts/GameConstants";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 
@@ -20,32 +17,16 @@ interface GameResult {
   isTeamGame: boolean;
 }
 
-// Legacy interface for prize-based games
-interface PrizeOutcome {
-  isWin: boolean;
-  prizeType?: string;
-  prizeId?: string;
-  displayName?: string;
-  textureKey?: string;
-  timestamp: string;
-}
-
 /**
- * Result Scene - Win/Lose display
+ * Result Scene - Team score display
  *
- * Shows either team score for arena game,
- * or prize result for legacy games.
+ * Shows team score for arena game.
  * Auto-dismisses after configured time.
  */
 export default class Result extends Phaser.Scene {
-  private gamePlugin?: GamePlugin;
   private autoDismissTimer?: Phaser.Time.TimerEvent;
   private backdrop?: AnimatedBackdrop;
   private confettiEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
-
-  // Legacy prize mode
-  private isWin = false;
-  private outcome?: PrizeOutcome;
 
   // Team game mode
   private gameResult?: GameResult;
@@ -55,26 +36,15 @@ export default class Result extends Phaser.Scene {
     super(SceneKeys.Result);
   }
 
-  init(data: { isWin?: boolean; outcome?: PrizeOutcome; score?: number; playerCount?: number; isTeamGame?: boolean }) {
-    // Check if this is a team game result
-    if (data.isTeamGame) {
-      this.gameResult = {
-        score: data.score ?? 0,
-        playerCount: data.playerCount ?? 2,
-        isTeamGame: true,
-      };
-      this.isWin = false;
-      this.outcome = undefined;
-    } else {
-      // Legacy prize mode
-      this.isWin = data.isWin ?? false;
-      this.outcome = data.outcome;
-      this.gameResult = undefined;
-    }
+  init(data: { score?: number; playerCount?: number; isTeamGame?: boolean }) {
+    this.gameResult = {
+      score: data.score ?? 0,
+      playerCount: data.playerCount ?? 2,
+      isTeamGame: true,
+    };
   }
 
   create(): void {
-    this.gamePlugin = this.plugins.get("GamePlugin") as GamePlugin;
     this.events.once("shutdown", this.shutdown, this);
 
     // Get high score from registry
@@ -86,29 +56,11 @@ export default class Result extends Phaser.Scene {
     const centerX = CANVAS.WIDTH / 2;
     const centerY = CANVAS.HEIGHT / 2;
 
-    // Show appropriate display based on game mode
-    if (this.gameResult) {
-      this.createTeamScoreDisplay(centerX, centerY);
-    } else if (this.isWin) {
-      this.createWinDisplay(centerX, centerY);
-    } else {
-      this.createLoseDisplay(centerX, centerY);
-    }
-
-    // Notify server (for legacy prize mode)
-    if (!this.gameResult) {
-      this.gamePlugin?.serverSocket.emit(GameEvents.ResultShown, {
-        isWin: this.isWin,
-        prizeType: this.outcome?.prizeType,
-        prizeId: this.outcome?.prizeId,
-        displayName: this.outcome?.displayName,
-        timestamp: this.outcome?.timestamp || new Date().toISOString(),
-      });
-    }
+    // Show team score display
+    this.createTeamScoreDisplay(centerX, centerY);
 
     // Auto-dismiss timer
-    const displayTime = this.gameResult ? GAME.RESULT_DISPLAY_MS : 6000;
-    this.autoDismissTimer = this.time.delayedCall(displayTime, () => {
+    this.autoDismissTimer = this.time.delayedCall(GAME.RESULT_DISPLAY_MS, () => {
       this.returnToLobby();
     });
 
@@ -335,72 +287,6 @@ export default class Result extends Phaser.Scene {
     });
   }
 
-  private createWinDisplay(centerX: number, centerY: number): void {
-    // Congratulations text
-    this.add
-      .text(centerX, 150, "Congratulations!", {
-        fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "120px",
-        color: "#ffffff",
-        shadow: {
-          offsetX: 4,
-          offsetY: 4,
-          color: "#333333",
-          blur: 0,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
-
-    // Prize name
-    const prizeName = this.outcome?.displayName || "You won a prize!";
-
-    this.add
-      .text(centerX, centerY, prizeName, {
-        fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "72px",
-        color: "#ffffff",
-        shadow: {
-          offsetX: 4,
-          offsetY: 4,
-          color: "#333333",
-          blur: 0,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
-
-    // Add celebratory effect
-    this.addCelebrationEffect(centerX, centerY);
-  }
-
-  private createLoseDisplay(centerX: number, centerY: number): void {
-    // Logo
-    this.add
-      .image(centerX, centerY - 100, TextureKeys.Logo)
-      .setOrigin(0.5)
-      .setDepth(DEPTH.GAME_OBJECTS);
-
-    // Consolation message
-    this.add
-      .text(centerX, centerY + 200, "Better luck next time!", {
-        fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "72px",
-        color: "#ffffff",
-        shadow: {
-          offsetX: 4,
-          offsetY: 4,
-          color: "#333333",
-          blur: 0,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
-  }
-
   private addCelebrationEffect(_centerX: number, _centerY: number): void {
     // Simple particle-like effect using tweening circles
     for (let i = 0; i < 30; i++) {
@@ -427,17 +313,7 @@ export default class Result extends Phaser.Scene {
   }
 
   private returnToLobby = () => {
-    // For legacy mode, emit animation complete
-    if (!this.gameResult) {
-      this.gamePlugin?.serverSocket.emit(GameEvents.AnimationComplete);
-    }
-
-    // Go to Lobby for team games, Idle for legacy
-    if (this.gameResult) {
-      this.scene.start(SceneKeys.Lobby);
-    } else {
-      this.scene.start(SceneKeys.Idle);
-    }
+    this.scene.start(SceneKeys.Lobby);
   };
 
   shutdown(): void {

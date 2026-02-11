@@ -68,5 +68,11 @@
     /* Advanced Options */
     "skipLibCheck": true,                     /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
-  }
+  },
+  "exclude": [
+    "scripts/stress-test.ts",
+    "scripts/test-buzzer-event.ts",
+    "scripts/stress-test-monitor.ts",
+    "scripts/analyze-stress-test.ts"
+  ]
 }

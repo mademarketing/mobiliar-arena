@@ -584,7 +584,7 @@ export function createAdminRoutes(db: PrizeDatabase): Router {
   /**
    * POST /api/admin/test-print
    * Test print a receipt layout
-   * Body: { receiptType: 'wfl' | 'swfl' | 'lose' }
+   * Body: { receiptType: 'win' | 'lose' }
    */
   router.post('/test-print', requireAuth, async (req, res) => {
     try {

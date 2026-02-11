@@ -259,9 +259,9 @@ export class AdaptiveDistribution {
    * Uses combined inventory (sum of all prize types) for probability calculation,
    * then selects prize type proportionally based on remaining inventory.
    *
-   * Example: 100 WFL remaining, 20 SWFL remaining = 120 total
+   * Example: 100 Prize A remaining, 20 Prize B remaining = 120 total
    * - Probability calculated using 120 total inventory
-   * - If win: 83.3% chance WFL, 16.7% chance SWFL
+   * - If win: 83.3% chance Prize A, 16.7% chance Prize B
    *
    * @param currentTime Current datetime
    * @param inventoryPrizes Array of prizes with their remaining counts

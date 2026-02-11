@@ -10,19 +10,16 @@ import {
   CANVAS,
   GAME,
   DEPTH,
+  PLAYER_KEYS,
 } from "../consts/GameConstants";
 import GameArena from "../managers/GameArena";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
-
-// Input keys - declared outside class like Phaser tutorial
-let countdownCursors: Phaser.Types.Input.Keyboard.CursorKeys;
-let countdownPlayer2Left: Phaser.Input.Keyboard.Key;
-let countdownPlayer2Right: Phaser.Input.Keyboard.Key;
 
 export default class Countdown extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
   private gameArena?: GameArena;
   private players: number[] = [];
+  private playerKeys: { left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key }[] = [];
   private countdownText?: Phaser.GameObjects.Text;
   private countdownValue: number = GAME.COUNTDOWN_SECONDS;
   private countdownTimer?: Phaser.Time.TimerEvent;
@@ -42,10 +39,14 @@ export default class Countdown extends Phaser.Scene {
     // Reset state
     this.countdownValue = GAME.COUNTDOWN_SECONDS;
 
-    // Setup input - exactly like Phaser tutorial
-    countdownCursors = this.input.keyboard.createCursorKeys();
-    countdownPlayer2Left = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    countdownPlayer2Right = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    // Setup input from shared key mapping
+    const keyboard = this.input.keyboard;
+    if (keyboard) {
+      this.playerKeys = PLAYER_KEYS.map((mapping) => ({
+        left: keyboard.addKey(mapping.left),
+        right: keyboard.addKey(mapping.right),
+      }));
+    }
 
     // Animated backdrop
     this.backdrop = new AnimatedBackdrop(this).create();
@@ -185,17 +186,17 @@ export default class Countdown extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    // Allow paddle movement during countdown (practice) - Phaser tutorial pattern
-    if (countdownCursors.left.isDown) {
-      this.gameArena?.movePaddle(0, -1, delta);
-    } else if (countdownCursors.right.isDown) {
-      this.gameArena?.movePaddle(0, 1, delta);
-    }
+    // Allow paddle movement during countdown (practice)
+    for (let i = 0; i < this.players.length; i++) {
+      const playerIndex = this.players[i];
+      const keys = this.playerKeys[playerIndex];
+      if (!keys) continue;
 
-    if (countdownPlayer2Left.isDown) {
-      this.gameArena?.movePaddle(1, -1, delta);
-    } else if (countdownPlayer2Right.isDown) {
-      this.gameArena?.movePaddle(1, 1, delta);
+      if (keys.left.isDown) {
+        this.gameArena?.movePaddle(playerIndex, -1, delta);
+      } else if (keys.right.isDown) {
+        this.gameArena?.movePaddle(playerIndex, 1, delta);
+      }
     }
   }
 
@@ -204,6 +205,7 @@ export default class Countdown extends Phaser.Scene {
 
     // Remove all keys to prevent state bleeding between scenes
     this.input.keyboard?.removeAllKeys(true);
+    this.playerKeys = [];
 
     this.countdownTimer?.remove();
     this.countdownTimer = undefined;

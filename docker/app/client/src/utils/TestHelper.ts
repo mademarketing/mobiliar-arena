@@ -8,7 +8,6 @@ import GamePlugin from "../plugins/GamePlugin";
  * Usage with agent-browser:
  *   agent-browser eval "window.__gameTest.getState()"
  *   agent-browser eval "window.__gameTest.pressKey('Space')"
- *   agent-browser eval "window.__gameTest.forceWin()"
  *
  * All methods return JSON-serializable data for easy assertion.
  */
@@ -31,10 +30,7 @@ export interface TestHelperAPI {
 
   // Actions
   pressKey: (key: string) => void;
-  forceWin: () => void;
-  forceLose: () => void;
   goToScene: (sceneKey: string, data?: Record<string, unknown>) => void;
-  triggerBuzzer: () => void;
 
   // Wait helpers (return promises for polling)
   waitForScene: (sceneKey: string, timeoutMs?: number) => Promise<boolean>;
@@ -125,18 +121,12 @@ export function initTestHelper(game: Phaser.Game): TestHelperAPI {
       const sceneAny = scene as any;
 
       switch (sceneKey) {
-        case SceneKeys.Idle:
-          state.isTransitioning = sceneAny.isTransitioning ?? false;
-          state.isPaused = sceneAny.isPaused ?? false;
-          break;
-
         case SceneKeys.Game:
           state.outcome = sceneAny.outcome ?? null;
           break;
 
         case SceneKeys.Result:
-          state.isWin = sceneAny.isWin ?? false;
-          state.outcome = sceneAny.outcome ?? null;
+          state.score = sceneAny.gameResult?.score ?? 0;
           break;
       }
 
@@ -167,31 +157,10 @@ export function initTestHelper(game: Phaser.Game): TestHelperAPI {
     },
 
     /**
-     * Force a win outcome (works in Idle scene)
-     */
-    forceWin(): void {
-      this.pressKey("1");
-    },
-
-    /**
-     * Force a lose outcome (works in Idle scene)
-     */
-    forceLose(): void {
-      this.pressKey("2");
-    },
-
-    /**
      * Navigate directly to a scene
      */
     goToScene(sceneKey: string, data?: Record<string, unknown>): void {
       game.scene.start(sceneKey, data);
-    },
-
-    /**
-     * Trigger buzzer press (Space key)
-     */
-    triggerBuzzer(): void {
-      this.pressKey("Space");
     },
 
     /**

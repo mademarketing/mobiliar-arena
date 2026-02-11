@@ -23,8 +23,8 @@ this.add.image(x, y, 'background');
 this.load.image('logo', 'assets/logo.png');
 
 // BAD - Hardcoded scene keys
-this.scene.start('idle');
-this.scene.start('icon-grid');
+this.scene.start('lobby');
+this.scene.start('game');
 ```
 
 **Problems**:
@@ -45,8 +45,8 @@ this.add.image(x, y, TextureKeys.Background);
 this.load.image(TextureKeys.Logo, 'assets/logo.png');
 
 // GOOD - Use SceneKeys enum
-this.scene.start(SceneKeys.Idle);
-this.scene.start(SceneKeys.IconGrid);
+this.scene.start(SceneKeys.Lobby);
+this.scene.start(SceneKeys.Game);
 ```
 
 **Benefits**:
@@ -95,7 +95,7 @@ this.load.image(TextureKeys.Logo, 'assets/images/logo.png');
 
 // Use textures
 this.add.image(x, y, TextureKeys.Background);
-this.add.sprite(x, y, TextureKeys.WheelSpinner);
+this.add.sprite(x, y, TextureKeys.Ball);
 ```
 
 ### SceneKeys
@@ -108,12 +108,12 @@ import SceneKeys from '../consts/SceneKeys';
 
 // Scene registration
 scene.add(SceneKeys.Bootstrap, Bootstrap);
-scene.add(SceneKeys.Idle, Idle);
-scene.add(SceneKeys.IconGrid, IconGrid);
+scene.add(SceneKeys.Lobby, Lobby);
+scene.add(SceneKeys.Game, Game);
 
 // Scene transitions
-this.scene.start(SceneKeys.IconGrid);
-this.scene.start(SceneKeys.Wheel);
+this.scene.start(SceneKeys.Game);
+this.scene.start(SceneKeys.Result);
 this.scene.stop(SceneKeys.Preload);
 ```
 
@@ -131,7 +131,7 @@ if (!isValidPrizeTextureKey(textureKey)) {
 }
 
 // Use in database
-prizeDatabase.createPrize(PrizeTextureKeys.WinForLife, displayName);
+prizeDatabase.createPrize(PrizeTextureKeys.GiftCard, displayName);
 ```
 
 ---
@@ -314,7 +314,7 @@ grep -r "\.image\(['\"]" docker/app/client/
 
 ### ✅ Good Examples
 
-**IconGrid.ts** - Using enums correctly:
+**Game.ts** - Using enums correctly:
 ```typescript
 import SceneKeys from "../consts/SceneKeys";
 import TextureKeys from "../consts/TextureKeys";
@@ -322,7 +322,7 @@ import GameEvents from "../consts/GameEvents";
 
 // Scene registration
 constructor() {
-  super(SceneKeys.IconGrid);
+  super(SceneKeys.Game);
 }
 
 // Texture loading
@@ -349,7 +349,7 @@ socket.emit(GameEvents.BuzzerPress, channel);
 ```typescript
 // BAD - Will cause typos and runtime errors
 socket.emit('prize-awrded', outcome); // Typo! Won't be caught
-this.scene.start('idle'); // Works but fragile
+this.scene.start('lobby'); // Works but fragile
 this.add.image(x, y, 'backgrond'); // Typo! Phaser error at runtime
 ```
 

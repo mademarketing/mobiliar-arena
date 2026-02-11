@@ -11,7 +11,8 @@ import { createAdminRoutes } from "./src/routes/admin";
 import { createPromoterRoutes } from "./src/routes/promoter";
 import { createDashboardRoutes } from "./src/routes/dashboard";
 import { createHealthRoutes } from "./src/routes/health";
-import { printReceipt, printGameReceipt, ReceiptType } from "./src/utils/printer";
+// Printer utilities available if needed
+// import { printReceipt, printGameReceipt, ReceiptType } from "./src/utils/printer";
 import { tunnelProtection } from "./src/middleware/tunnelProtection";
 import session = require("express-session");
 const path = require("path");
@@ -48,7 +49,7 @@ let promotionEndTime: string = "18:00";
 
 // Machine identification (from environment variable)
 const machineId = process.env.MACHINE_ID || "1";
-const machineName = `Swisslos ${machineId}`;
+const machineName = `Arena ${machineId}`;
 
 /**
  * Get current game pause state
@@ -149,9 +150,8 @@ function runCode() {
       if (state === false) {
         console.log("Physical button pressed on channel:", channel);
 
-        // Emit buzzer press event to all clients
-        // Clients will handle the press (advance through game scenes: Idle → IconGrid → Wheel → Win/Lose)
-        io.emit(GameEvents.BuzzerPress, channel);
+        // Emit player input event to all clients
+        io.emit(GameEvents.PlayerInput, { channel, pressed: true });
       }
     }
     return stateChange;
@@ -192,7 +192,7 @@ app.use(tunnelProtection);
 // Session middleware for admin authentication
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "win-for-life-secret-2025",
+    secret: process.env.SESSION_SECRET || "mobiliar-arena-secret-2025",
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -213,7 +213,7 @@ if (isDev) {
       <html>
         <head><title>Development Server</title></head>
         <body style="font-family: system-ui; padding: 2rem;">
-          <h1>🎮 Win for Life Roadshow - Dev Server</h1>
+          <h1>🎮 Mobiliar Arena - Dev Server</h1>
           <p>The server is running on port ${port}.</p>
           <p><strong>To view the game, open:</strong> <a href="http://localhost:8080">http://localhost:8080</a></p>
           <p><strong>To view the admin interface, open:</strong> <a href="http://localhost:${port}/admin">http://localhost:${port}/admin</a></p>
@@ -328,138 +328,6 @@ io.on("connection", (socket: Socket) => {
   // Handle preload finished event
   socket.on(GameEvents.PreloadFinished, () => {
     console.log(`Client ${socket.id} finished preloading`);
-  });
-
-  // Handle simulated buzzer press from stress test
-  // Relay as BuzzerPress to all clients (just like physical button does)
-  socket.on(GameEvents.SimulateBuzzerPress, (channel: number) => {
-    console.log(`SimulateBuzzerPress received from ${socket.id}, relaying as BuzzerPress to all clients`);
-    io.emit(GameEvents.BuzzerPress, channel);
-  });
-
-  // Handle prize request from client (with callback)
-  socket.on(GameEvents.RequestPrize, (callback: (outcome: any) => void) => {
-    console.log(`RequestPrize received from client ${socket.id}`);
-
-    try {
-      const serverOutcome = prizeEngine.determinePrizeOutcome();
-
-      // Check if game is paused
-      if (serverOutcome === null) {
-        console.log("Prize distribution blocked (game paused)");
-        // Return a "paused" outcome - client can handle this
-        if (typeof callback === "function") {
-          callback({
-            isWin: false,
-            timestamp: new Date().toISOString(),
-            paused: true,
-          });
-        }
-        return;
-      }
-
-      // Map server outcome to client format for Phase 1 MVP
-      // Server: "scheduled" | "inventory" | "consolation"
-      // Client: isWin + prizeType "wfl" | "swfl"
-      const clientOutcome = {
-        isWin: serverOutcome.prizeType !== "consolation",
-        prizeType:
-          serverOutcome.prizeType === "scheduled"
-            ? "swfl"
-            : serverOutcome.prizeType === "inventory"
-              ? "wfl"
-              : undefined,
-        prizeId: serverOutcome.prizeId,
-        displayName: serverOutcome.displayName,
-        textureKey: serverOutcome.textureKey,
-        timestamp: serverOutcome.timestamp,
-      };
-
-      console.log("Prize outcome mapped for client:", clientOutcome);
-
-      // Return via callback
-      if (typeof callback === "function") {
-        callback(clientOutcome);
-      }
-    } catch (error) {
-      console.error("Error determining prize outcome:", error);
-      // Return fallback lose outcome on error
-      if (typeof callback === "function") {
-        callback({
-          isWin: false,
-          timestamp: new Date().toISOString(),
-          error: true,
-        });
-      }
-    }
-  });
-
-  // Handle animation complete event from client
-  // Relay this event to all connected clients (including stress test script)
-  socket.on(GameEvents.AnimationComplete, (data: any) => {
-    console.log(`Animation complete received from client ${socket.id}`);
-    // Broadcast to all clients so stress test can receive it
-    io.emit(GameEvents.AnimationComplete, data);
-  });
-
-  // Handle Result scene shown - trigger print for all outcomes
-  socket.on(GameEvents.ResultShown, (data: {
-    isWin: boolean;
-    prizeType?: string;
-    prizeId?: string;
-    displayName?: string;
-    timestamp: string;
-  }) => {
-    // Determine receipt type based on outcome
-    const receiptType: ReceiptType = data.isWin ? 'win' : 'lose';
-
-    console.log(`📄 ResultShown event received:`, {
-      isWin: data.isWin,
-      prizeType: data.prizeType,
-      receiptType,
-      prizeId: data.prizeId,
-      displayName: data.displayName,
-      printerEnabled: process.env.PRINTER_ENABLED,
-      printerIp: process.env.PRINTER_IP
-    });
-
-    if (process.env.PRINTER_ENABLED !== 'true') {
-      console.log(`   ↳ Skipping print: PRINTER_ENABLED is not 'true'`);
-      return;
-    }
-
-    if (!process.env.PRINTER_IP) {
-      console.log(`   ↳ Skipping print: PRINTER_IP not set`);
-      return;
-    }
-
-    console.log(`🖨️  Sending ${receiptType} print job to ${process.env.PRINTER_IP}...`);
-
-    printGameReceipt(process.env.PRINTER_IP, {
-      receiptType,
-      displayName: data.displayName,
-      prizeId: data.prizeId,
-      timestamp: data.timestamp
-    }).then(result => {
-      // Only update print status for wins (they have a timestamp in DB)
-      if (data.isWin && data.timestamp) {
-        try {
-          prizeDatabase.updatePrintStatus(
-            data.timestamp,
-            result.success ? 'success' : 'failed'
-          );
-        } catch (dbError) {
-          console.error('Failed to update print status:', dbError);
-        }
-      }
-      if (!result.success) {
-        console.error('Print failed:', result.error);
-      } else {
-        console.log(`${receiptType.toUpperCase()} receipt printed successfully`);
-      }
-    }).catch(error => {
-      console.error('Print error:', error);
-    });
   });
 
   // Handle disconnection

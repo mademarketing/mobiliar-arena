@@ -14,8 +14,6 @@ enum SceneKeys {
   Bootstrap = "bootstrap",
   /** Asset preloading scene */
   Preload = "preload",
-  /** Idle/attract scene - waits for buzzer press */
-  Idle = "idle",
   /** Lobby scene - players join by holding buttons */
   Lobby = "lobby",
   /** Countdown scene - 3-2-1-GO! before game */

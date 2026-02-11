@@ -1,5 +1,5 @@
 // Dashboard JavaScript
-// Auto-refreshing public dashboard for Win for Life roadshow
+// Auto-refreshing public dashboard for Mobiliar Arena
 
 // ========== State ==========
 let currentData = null;

@@ -14,19 +14,16 @@ import {
   CANVAS,
   GAME,
   DEPTH,
+  PLAYER_KEYS,
 } from "../consts/GameConstants";
 import GameArena from "../managers/GameArena";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
-
-// Input keys - declared outside class like Phaser tutorial
-let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-let player2Left: Phaser.Input.Keyboard.Key;
-let player2Right: Phaser.Input.Keyboard.Key;
 
 export default class Game extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
   private gameArena?: GameArena;
   private players: number[] = [];
+  private playerKeys: { left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key }[] = [];
 
   // UI elements
   private timerText?: Phaser.GameObjects.Text;
@@ -56,10 +53,14 @@ export default class Game extends Phaser.Scene {
     this.timeRemaining = GAME.DURATION_MS;
     this.isGameOver = false;
 
-    // Setup input - exactly like Phaser tutorial
-    cursors = this.input.keyboard.createCursorKeys();
-    player2Left = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    player2Right = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    // Setup input from shared key mapping
+    const keyboard = this.input.keyboard;
+    if (keyboard) {
+      this.playerKeys = PLAYER_KEYS.map((mapping) => ({
+        left: keyboard.addKey(mapping.left),
+        right: keyboard.addKey(mapping.right),
+      }));
+    }
 
     // Animated backdrop
     this.backdrop = new AnimatedBackdrop(this).create();
@@ -275,28 +276,30 @@ export default class Game extends Phaser.Scene {
 
     console.log(`Game Over! Score: ${finalScore}, Players: ${playerCount}`);
 
-    // Restart game immediately (skip result screen)
+    // Transition to Result screen
     this.time.delayedCall(500, () => {
-      this.scene.restart({ players: this.players });
+      this.scene.start(SceneKeys.Result, {
+        score: finalScore,
+        playerCount: playerCount,
+        isTeamGame: true,
+      });
     });
   }
 
   update(_time: number, delta: number): void {
     if (this.isGameOver) return;
 
-    // Poll input and update - exactly like Phaser tutorial pattern
-    // Player 1: Arrow keys
-    if (cursors.left.isDown) {
-      this.gameArena?.movePaddle(0, -1, delta);
-    } else if (cursors.right.isDown) {
-      this.gameArena?.movePaddle(0, 1, delta);
-    }
+    // Poll input for all active players
+    for (let i = 0; i < this.players.length; i++) {
+      const playerIndex = this.players[i];
+      const keys = this.playerKeys[playerIndex];
+      if (!keys) continue;
 
-    // Player 2: A/D keys (inverted for easier play)
-    if (player2Left.isDown) {
-      this.gameArena?.movePaddle(1, 1, delta);
-    } else if (player2Right.isDown) {
-      this.gameArena?.movePaddle(1, -1, delta);
+      if (keys.left.isDown) {
+        this.gameArena?.movePaddle(playerIndex, -1, delta);
+      } else if (keys.right.isDown) {
+        this.gameArena?.movePaddle(playerIndex, 1, delta);
+      }
     }
 
     // Update game logic (balls, collisions, etc)
@@ -335,6 +338,7 @@ export default class Game extends Phaser.Scene {
 
     // Remove all keys to prevent state bleeding between scenes
     this.input.keyboard?.removeAllKeys(true);
+    this.playerKeys = [];
 
     // Stop timer
     this.gameTimer?.remove();

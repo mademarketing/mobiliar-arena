@@ -1,6 +1,6 @@
 # Game Testing with agent-browser
 
-The Win for Life game exposes a `window.__gameTest` API for automated testing via `agent-browser eval`.
+The Mobiliar Arena game exposes a `window.__gameTest` API for automated testing via `agent-browser eval`.
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ agent-browser eval "window.__gameTest.getState()"
 
 # Get current scene name
 agent-browser eval "window.__gameTest.getCurrentScene()"
-# Returns: "idle" | "icon-grid" | "wheel" | "result" | null
+# Returns: "lobby" | "countdown" | "game" | "result" | null
 
 # Check if game is ready
 agent-browser eval "window.__gameTest.isReady()"
@@ -53,33 +53,20 @@ agent-browser eval "window.__gameTest.getSceneState()"
 
 ### Scene-Specific State
 
-**Idle Scene:**
+**Lobby Scene:**
 ```json
 {
-  "sceneKey": "idle",
-  "isTransitioning": false,
-  "isPaused": false
+  "sceneKey": "lobby",
+  "joinedPlayers": [0, 1]
 }
 ```
 
-**IconGrid Scene:**
+**Game Scene:**
 ```json
 {
-  "sceneKey": "icon-grid",
-  "scratchCount": 2,
-  "isScratching": false,
-  "scratchedPositions": [0, 3],
-  "isWin": true,
-  "currentHighlightIndex": 4
-}
-```
-
-**Wheel Scene:**
-```json
-{
-  "sceneKey": "wheel",
-  "isStopping": false,
-  "outcome": { "isWin": true, "prizeType": "wfl", ... }
+  "sceneKey": "game",
+  "score": 150,
+  "combo": 3
 }
 ```
 
@@ -87,36 +74,26 @@ agent-browser eval "window.__gameTest.getSceneState()"
 ```json
 {
   "sceneKey": "result",
-  "isWin": true,
-  "outcome": { "prizeType": "swfl", ... }
+  "score": 420
 }
 ```
 
 ### Actions
 
 ```bash
-# Press a key (Space, Enter, 1, 2)
+# Press a key (Space, Enter, 1-6, Arrow keys, A/D)
 agent-browser eval "window.__gameTest.pressKey('Space')"
 
-# Trigger buzzer (same as Space)
-agent-browser eval "window.__gameTest.triggerBuzzer()"
-
-# Force win (press 1 key - works in Idle and IconGrid)
-agent-browser eval "window.__gameTest.forceWin()"
-
-# Force lose (press 2 key - works in Idle and IconGrid)
-agent-browser eval "window.__gameTest.forceLose()"
-
 # Go to specific scene
-agent-browser eval "window.__gameTest.goToScene('idle')"
-agent-browser eval "window.__gameTest.goToScene('result', { isWin: true })"
+agent-browser eval "window.__gameTest.goToScene('lobby')"
+agent-browser eval "window.__gameTest.goToScene('result', { score: 420 })"
 ```
 
 ### Wait Helpers
 
 ```bash
 # Wait for scene (returns true/false)
-agent-browser eval "await window.__gameTest.waitForScene('wheel')"
+agent-browser eval "await window.__gameTest.waitForScene('game')"
 agent-browser eval "await window.__gameTest.waitForScene('result', 15000)"
 
 # Wait for game ready
@@ -125,80 +102,37 @@ agent-browser eval "await window.__gameTest.waitForReady()"
 
 ## Example Test Flows
 
-### Test Win Flow
+### Test Arena Game Flow
 
 ```bash
-agent-browser open http://localhost:8000
+agent-browser open http://localhost:8080
 agent-browser wait 2000
-agent-browser eval "await window.__gameTest.waitForScene('idle')"
-agent-browser screenshot 01-idle.png
+agent-browser eval "await window.__gameTest.waitForScene('lobby')"
+agent-browser screenshot 01-lobby.png
 
-# Force win from Idle
-agent-browser eval "window.__gameTest.forceWin()"
-agent-browser eval "await window.__gameTest.waitForScene('icon-grid')"
-agent-browser screenshot 02-icongrid.png
+# Join players using keyboard shortcuts
+agent-browser eval "window.__gameTest.pressKey('1')"
+agent-browser wait 500
+agent-browser eval "window.__gameTest.pressKey('2')"
+agent-browser wait 500
+agent-browser screenshot 02-players-joined.png
 
-# Watch scratching
-agent-browser wait 3000
-agent-browser eval "window.__gameTest.getSceneState()"
-agent-browser screenshot 03-scratching.png
+# Start the game
+agent-browser eval "window.__gameTest.pressKey('Enter')"
+agent-browser eval "await window.__gameTest.waitForScene('game', 10000)"
+agent-browser screenshot 03-game-started.png
 
-# Wait for wheel
-agent-browser eval "await window.__gameTest.waitForScene('wheel', 15000)"
-agent-browser screenshot 04-wheel.png
-
-# Stop wheel
-agent-browser eval "window.__gameTest.triggerBuzzer()"
+# Take screenshots during gameplay
 agent-browser wait 5000
-agent-browser screenshot 05-wheel-stopped.png
+agent-browser eval "window.__gameTest.getSceneState()"
+agent-browser screenshot 04-game-playing.png
 
 # Wait for result
-agent-browser eval "await window.__gameTest.waitForScene('result', 10000)"
-agent-browser screenshot 06-result.png
+agent-browser eval "await window.__gameTest.waitForScene('result', 70000)"
+agent-browser screenshot 05-result.png
 
-# Verify win
-agent-browser eval "window.__gameTest.getSceneState().isWin"
-
-agent-browser close
-```
-
-### Test Lose Flow
-
-```bash
-agent-browser open http://localhost:8000
-agent-browser eval "await window.__gameTest.waitForScene('idle')"
-
-# Force lose
-agent-browser eval "window.__gameTest.forceLose()"
-agent-browser eval "await window.__gameTest.waitForScene('icon-grid')"
-
-# Wait for scratching to complete
-agent-browser wait 8000
-
-# Should go directly to Result (no Wheel)
-agent-browser eval "await window.__gameTest.waitForScene('result', 10000)"
-agent-browser eval "window.__gameTest.getSceneState().isWin === false"
-
-agent-browser close
-```
-
-### Test Wheel Lands on Correct Segment
-
-```bash
-agent-browser open http://localhost:8000
-agent-browser eval "await window.__gameTest.waitForScene('idle')"
-
-# Force win
-agent-browser eval "window.__gameTest.forceWin()"
-agent-browser eval "await window.__gameTest.waitForScene('wheel', 15000)"
-
-# Get prize type
-agent-browser eval "window.__gameTest.getSceneState().outcome?.prizeType"
-
-# Stop wheel and verify
-agent-browser eval "window.__gameTest.triggerBuzzer()"
-agent-browser wait 5000
-agent-browser screenshot wheel-landing.png
+# Verify score
+agent-browser eval "window.__gameTest.getSceneState().score"
 
 agent-browser close
 ```

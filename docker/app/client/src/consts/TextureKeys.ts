@@ -7,8 +7,6 @@
 const TextureKeys = {
   /** Game logo */
   Logo: "logo",
-  /** Buzzer button graphic */
-  BuzzerIcon: "buzzer-icon",
   /** Background image */
   Background: "background",
   /** Arena border/ring graphic */

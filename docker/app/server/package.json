@@ -26,10 +26,6 @@
     "simulate:poisson": "tsx simulate-prizes.ts --profile poisson --base-rate 100",
     "simulate:peak": "tsx simulate-prizes.ts --profile peak",
     "simulate:custom": "tsx simulate-prizes.ts",
-    "test-buzzer": "tsx scripts/test-buzzer-event.ts",
-    "stress-test": "tsx scripts/stress-test.ts",
-    "stress-test:monitor": "tsx scripts/stress-test-monitor.ts",
-    "analyze-stress-test": "tsx scripts/analyze-stress-test.ts",
     "backup": "tsx scripts/backup-database.ts",
     "backup:custom": "tsx scripts/backup-database.ts --"
   },

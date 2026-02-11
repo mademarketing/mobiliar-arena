@@ -1,6 +1,6 @@
 # Constants Directory
 
-This directory contains centralized configuration and constant definitions for the Win for Life Roadshow game client.
+This directory contains centralized configuration and constant definitions for the Mobiliar Arena game client.
 
 ## Files
 
@@ -16,7 +16,10 @@ Scene identifier constants for the game flow:
 enum SceneKeys {
   Bootstrap = "bootstrap",  // Load settings from server
   Preload = "preload",      // Load game assets
-  Game = "game",            // Main game scene
+  Lobby = "lobby",          // Players join by holding buttons
+  Countdown = "countdown",  // 3-2-1-GO before gameplay
+  Game = "game",            // Main cooperative Pong gameplay
+  Result = "result",        // Team score display
 }
 ```
 
@@ -26,7 +29,7 @@ Texture key constants for loaded assets. Add keys here that match your asset loa
 const TextureKeys = {
   Background: "background",
   Logo: "logo",
-  WheelBase: "wheel-base",
+  Ball: "ball",
   // ... add more as needed
 } as const;
 ```

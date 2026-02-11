@@ -1,5 +1,5 @@
 name: Full Game Flow
-description: Complete test of the Win for Life game from start screen through icon selection to result
+description: Complete test of the Mobiliar Arena game from lobby through gameplay to result
 
 config:
   game_url: http://localhost:8080
@@ -57,6 +57,6 @@ expected_results:
   - step: 1
     expect: Start screen visible with orange background, host character, and "Buzzer drücken" text
   - step: 3
-    expect: Game transitions to main gameplay (icon grid or wheel)
+    expect: Game transitions to main gameplay
   - step: 7
     expect: Game shows result - either WIN or LOSE screen

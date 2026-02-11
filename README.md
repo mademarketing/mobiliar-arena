@@ -1,28 +1,28 @@
-# Kiosk Game Template
+# Mobiliar Arena
 
-A reusable template for building interactive kiosk games with Phaser 3 and Node.js. Includes complete infrastructure for prize distribution, admin panels, and receipt printing.
+A cooperative multiplayer circular Pong game for 2-6 players, created for Mobiliar's 200th anniversary campaign "Besser zusammen" (Better together). Players stand around a circular LED table, each controlling a paddle with arcade buttons, working together to keep balls in play.
 
 ## Features
 
-- **Phaser 3 Game Client** - Modern HTML5 game framework (1920x1080 canvas)
-- **Express + Socket.io Server** - Real-time game communication
-- **Prize Distribution Engine** - Adaptive probability algorithm
-- **Admin Panel** - Manage prizes, view statistics
-- **Promoter Panel** - Event staff controls
-- **Receipt Printing** - Star Micronics printer support
+- **Circular Pong** - Cooperative multiplayer gameplay on a circular arena
+- **2-6 Players** - Dynamic paddle sizing based on player count
+- **Sport Themes** - Basketball, handball, volleyball, floorball, corporate
+- **Phidgets Input** - Arcade button hardware integration
+- **Admin Panel** - Theme selection, game settings, highscore management
 - **Docker Deployment** - Ready for Balena cloud deployment
 
 ## Game Flow
 
 ```
-Bootstrap → Preload → Idle → [Buzzer] → Game → Result → Idle
+Bootstrap → Preload → Lobby → Countdown → Game (60s) → Result → Lobby
 ```
 
 1. **Bootstrap** - Loads settings from server
-2. **Preload** - Loads game assets
-3. **Idle** - Attract screen, waits for buzzer press
-4. **Game** - Main game scene (implement your mechanic here)
-5. **Result** - Win celebration or lose consolation, auto-returns to Idle
+2. **Preload** - Loads theme assets (background, balls, fonts)
+3. **Lobby** - Players join by holding both buttons for 3 seconds
+4. **Countdown** - 3-2-1-GO! (players can practice moving paddles)
+5. **Game** - 60-second cooperative Pong
+6. **Result** - Team score display, highscore check, auto-returns to Lobby
 
 ## Quick Start
 
@@ -41,10 +41,9 @@ cd docker/app/server && npm run dev
 cd docker/app/client && npm run dev
 ```
 
-- Client: http://localhost:5173
+- Client: http://localhost:8080
 - Server API: http://localhost:3000
 - Admin Panel: http://localhost:3000/admin
-- Promoter Panel: http://localhost:3000/promoter
 
 ### Docker
 
@@ -53,22 +52,43 @@ cd docker
 docker-compose up --build
 ```
 
+## Keyboard Controls (Development)
+
+Each player has two keys: left (counterclockwise) and right (clockwise).
+
+**In the Lobby**, hold both keys for 3 seconds to join. Minimum 2 players to start.
+
+| Player | Left | Right |
+|--------|------|-------|
+| 1      | `1`  | `2`   |
+| 2      | `3`  | `4`   |
+| 3      | `5`  | `6`   |
+| 4      | `7`  | `8`   |
+| 5      | `9`  | `0`   |
+| 6      | `←`  | `→`   |
+
+### Other Shortcuts
+
+| Key | Scene | Action |
+|-----|-------|--------|
+| Enter | Lobby | Force start (with 2+ players) |
+| Space | Game | Spawn extra ball |
+| Escape | Game | End game early |
+| Space | Result | Skip to Lobby |
+
 ## Project Structure
 
 ```
 docker/app/
 ├── client/                 # Phaser 3 game client
 │   ├── src/
-│   │   ├── scenes/         # Game scenes
-│   │   │   ├── Bootstrap.ts
-│   │   │   ├── Preload.ts
-│   │   │   ├── Idle.ts
-│   │   │   ├── Game.ts     # ← Your game mechanic
-│   │   │   └── Result.ts
-│   │   ├── consts/         # Constants and config
-│   │   ├── utils/          # Utility classes
+│   │   ├── scenes/         # Game scenes (Lobby, Countdown, Game, Result)
+│   │   ├── managers/       # GameArena, ThemeManager
+│   │   ├── classes/        # Ball, Paddle
+│   │   ├── consts/         # Constants, keys, config
+│   │   ├── utils/          # Physics, effects, helpers
 │   │   └── plugins/        # Phaser plugins
-│   └── public/assets/      # Game assets
+│   └── public/assets/      # Game assets and themes
 │
 ├── server/                 # Express + Socket.io server
 │   ├── src/
@@ -77,145 +97,59 @@ docker/app/
 │   │   ├── database/       # SQLite database
 │   │   └── utils/          # Utilities
 │   └── content/            # Configuration files
-│       ├── prizes.json
-│       └── distribution-config.json
+│       └── settings.json
 │
-└── shared/                 # Shared types
+└── shared/                 # Shared types and events
 ```
 
-## Customization Guide
+## Themes
 
-### 1. Implement Your Game Mechanic
+Themes are stored in `docker/app/client/public/assets/themes/`:
 
-Edit `docker/app/client/src/scenes/Game.ts`:
+| Theme | Description |
+|-------|-------------|
+| `basketball` | Basketball court and ball |
+| `handball` | Handball field and ball |
+| `volleyball` | Volleyball court and ball |
+| `floorball` | Floorball rink and ball |
+| `corporate` | Mobiliar white/red branding |
 
-```typescript
-create() {
-  // The outcome is already determined by the server
-  const outcome = this.outcome;
+Each theme provides `background.png` and `ball.png`. Switch themes via the admin panel or `settings.json`.
 
-  // TODO: Create your game animation/interaction
-  // Examples: prize wheel, scratch card, slot machine, claw machine
+## Hardware Setup
 
-  // When reveal is complete, transition to Result:
-  this.scene.start(SceneKeys.Result, {
-    isWin: outcome?.isWin ?? false,
-    outcome: outcome,
-  });
-}
-```
+### Phidgets Digital Inputs
 
-### 2. Add Your Assets
+- 2 buttons per player (left/right), up to 12 channels for 6 players
+- Phidget hub connected via USB
+- Button mapping configurable in settings
 
-Place assets in `docker/app/client/public/assets/`:
-- `images/` - PNG/JPG images
-- `videos/` - WebM videos
-- `fonts/` - Custom fonts
+### Display
 
-Update `Preload.ts` and `TextureKeys.ts` to load them.
-
-### 3. Configure Prizes
-
-Edit `docker/app/server/content/prizes.json`:
-
-```json
-{
-  "prizes": [
-    { "textureKey": "grand-prize", "displayName": "Grand Prize" },
-    { "textureKey": "consolation", "displayName": "Small Prize" }
-  ]
-}
-```
-
-### 4. Set Distribution Quotas
-
-Edit `docker/app/server/content/distribution-config.json`:
-
-```json
-{
-  "standard": {
-    "name": "Standard",
-    "description": "Normal event day",
-    "prizes": {
-      "grand-prize": 10,
-      "consolation": 100
-    }
-  }
-}
-```
-
-### 5. Customize Receipt Printing
-
-Edit `docker/app/server/src/utils/printer.ts` to add your branding.
-
-## Testing Shortcuts
-
-| Key | Scene | Action |
-|-----|-------|--------|
-| Space | Idle | Start game (requests prize from server) |
-| 1 | Idle | Force WIN (bypasses server) |
-| 2 | Idle | Force LOSE (bypasses server) |
-| Space | Game/Result | Skip to next scene |
-
-## Key Events
-
-The game communicates via Socket.io events defined in `shared/GameEvents.ts`:
-
-| Event | Direction | Description |
-|-------|-----------|-------------|
-| `BuzzerPress` | Server → Client | Physical button was pressed |
-| `RequestPrize` | Client → Server | Request prize outcome |
-| `PrizeAwarded` | Server → Client | Prize determined and sent |
-| `GamePaused` | Server → Client | Admin paused the game |
-| `GameResumed` | Server → Client | Admin resumed the game |
-
-## Prize System
-
-Two-tier prize distribution:
-1. **Inventory** - Limited daily quantity prizes with adaptive probability
-2. **Consolation** - Always available fallback (lose)
-
-Configure prizes via:
-- Admin panel: http://localhost:3000/admin
-- Config files: `docker/app/server/content/`
-
-### QR Code Requirement
-
-Each winning prize requires an available QR code to be assigned. QR codes must be imported via the Admin panel before prizes can be awarded.
-
-### Auto-Pause Feature
-
-The game will **automatically pause** when QR codes are depleted for any prize type.
-
-**To resume:** Go to the Promoter panel (`/promoter`) and click the Resume button.
-
-**To prevent:** Ensure sufficient QR codes are imported for all prize types before starting.
+- Output: 1920x1080 HD (HDMI)
+- External LED controller maps rectangular canvas to circular LED screen
+- Circular arena rendered centered at (960, 540) with ~450px radius
 
 ## Deployment
 
 ### Balena Cloud
 
-1. Create a fleet in Balena Cloud
-2. Push the code:
-   ```bash
-   balena push <fleet-name>
-   ```
+```bash
+balena push <fleet-name>
+```
 
 ### Environment Variables
-
-Configure in `docker-compose.yml` or Balena dashboard:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `NODE_ENV` | Environment | `production` |
-| `PRINTER_IP` | Star printer IP address | `192.168.1.100` |
 | `ADMIN_PASSWORD` | Admin panel password | `secret123` |
 
 ## Infrastructure Services
 
 - **app** - Main game server and client
 - **browser** - Chromium in kiosk mode
-- **phidgets** - Hardware buzzer integration
+- **phidgets** - Hardware button integration
 - **cloudflared** - Remote access tunnel
 
 ## License

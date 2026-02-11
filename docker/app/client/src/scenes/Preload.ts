@@ -40,7 +40,6 @@ export default class Preload extends Phaser.Scene {
 
     // Load game assets - add your assets here
     this.load.image(TextureKeys.Logo, "assets/images/logo.png");
-    this.load.image(TextureKeys.BuzzerIcon, "assets/images/buzzer-icon.png");
     this.load.image(TextureKeys.Background, "assets/images/background.png");
 
     // Set theme from settings and load theme assets

@@ -10,18 +10,6 @@ enum GameEvents {
   /** Emitted when asset preload is complete */
   PreloadFinished = "preload-finished",
 
-  /** Buzzer press event - emitted by server when physical button is pressed */
-  BuzzerPress = "buzzer-press",
-
-  /** Simulate buzzer press - for testing without physical hardware */
-  SimulateBuzzerPress = "simulate-buzzer-press",
-
-  /** Client requests a prize from the server */
-  RequestPrize = "request-prize",
-
-  /** Prize outcome determined and sent to client */
-  PrizeAwarded = "prize-awarded",
-
   /** Reload command from server */
   Reload = "reload",
 
@@ -30,14 +18,6 @@ enum GameEvents {
 
   /** Game resumed by admin */
   GameResumed = "game-resumed",
-
-  /** Client notifies animation is complete */
-  AnimationComplete = "animation-complete",
-
-  /** Client notifies Result scene is shown (triggers print for wins) */
-  ResultShown = "result-shown",
-
-  // Arena Pong Events
 
   /** Player input (button press/release) from Phidgets */
   PlayerInput = "player-input",

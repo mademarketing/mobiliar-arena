@@ -23,6 +23,7 @@ import {
   degreesToRadians,
   checkPaddleCollision,
   polarToCartesian,
+  signedAngularDistance,
 } from "../utils/CircularPhysics";
 import { createCollisionEffect } from "../utils/CollisionEffect";
 import { createFloatingText, createMilestoneText } from "../utils/FloatingText";
@@ -318,6 +319,29 @@ export default class GameArena {
       const leftPressed = direction < 0;
       const rightPressed = direction > 0;
       paddle.update(leftPressed, rightPressed, delta);
+      this.clampPaddleAgainstNeighbors(paddle);
+    }
+  }
+
+  /**
+   * Prevent paddle from overlapping any other paddle.
+   * If overlap is detected, push this paddle back to just touching.
+   */
+  private clampPaddleAgainstNeighbors(paddle: Paddle): void {
+    for (const other of this.paddles.values()) {
+      if (other.playerIndex === paddle.playerIndex) continue;
+
+      const minGap = (paddle.arcWidth + other.arcWidth) / 2;
+      const dist = signedAngularDistance(paddle.angle, other.angle);
+      const absDist = Math.abs(dist);
+
+      if (absDist < minGap) {
+        // Overlapping — push this paddle to just touching
+        const pushAngle = dist > 0
+          ? other.angle - minGap   // other is CW, push us CCW
+          : other.angle + minGap;  // other is CCW, push us CW
+        paddle.setAngle(pushAngle);
+      }
     }
   }
 

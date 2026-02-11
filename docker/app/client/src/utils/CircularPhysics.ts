@@ -38,6 +38,16 @@ export function normalizeAngle(degrees: number): number {
 }
 
 /**
+ * Signed shortest angular distance from `from` to `to` (positive = clockwise)
+ * Returns value in range -180 to +180
+ */
+export function signedAngularDistance(from: number, to: number): number {
+  let diff = normalizeAngle(to - from);
+  if (diff > 180) diff -= 360;
+  return diff;
+}
+
+/**
  * Get the center angle for a player's paddle based on their position
  * Players are distributed evenly around the circle starting from the top
  *
@@ -67,32 +77,6 @@ export function getPaddleArcLength(totalPlayers: number): number {
   // 2 players: 40 degrees, 6 players: ~26 degrees
   const arcDegrees = PADDLE.BASE_ARC_DEGREES - (totalPlayers - 2) * 3;
   return Math.max(arcDegrees, PADDLE.MIN_ARC_DEGREES);
-}
-
-/**
- * Get the angular range a paddle can move within
- * Each player has a "sector" they can move in
- *
- * @param playerIndex - Player index (0-5)
- * @param totalPlayers - Total number of active players (2-6)
- * @returns Object with minAngle and maxAngle in degrees
- */
-export function getPaddleMovementRange(
-  playerIndex: number,
-  totalPlayers: number
-): { minAngle: number; maxAngle: number } {
-  const centerAngle = getPaddleAngle(playerIndex, totalPlayers);
-  const sectorSize = 360 / totalPlayers;
-  const paddleArc = getPaddleArcLength(totalPlayers);
-
-  // The paddle can move within its sector, minus half the paddle width on each side
-  const halfPaddle = paddleArc / 2;
-  const halfSector = sectorSize / 2;
-
-  return {
-    minAngle: normalizeAngle(centerAngle - halfSector + halfPaddle),
-    maxAngle: normalizeAngle(centerAngle + halfSector - halfPaddle),
-  };
 }
 
 /**

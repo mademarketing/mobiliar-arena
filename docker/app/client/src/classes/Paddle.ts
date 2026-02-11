@@ -12,7 +12,6 @@ import {
   normalizeAngle,
   getPaddleAngle,
   getPaddleArcLength,
-  getPaddleMovementRange,
   polarToCartesian,
   degreesToRadians,
 } from "../utils/CircularPhysics";
@@ -27,8 +26,6 @@ export default class Paddle {
   private totalPlayers: number;
   private _angle: number; // Current center angle in degrees
   private _arcWidth: number; // Arc width in degrees
-  private _minAngle: number; // Movement boundary
-  private _maxAngle: number; // Movement boundary
   private _color: number;
   private _innerRadius: number;
   private _outerRadius: number;
@@ -51,11 +48,6 @@ export default class Paddle {
     // Initialize position
     this._angle = getPaddleAngle(this.paddleIndex, this.totalPlayers);
     this._arcWidth = getPaddleArcLength(this.totalPlayers);
-
-    // Get movement boundaries
-    const range = getPaddleMovementRange(this.paddleIndex, this.totalPlayers);
-    this._minAngle = range.minAngle;
-    this._maxAngle = range.maxAngle;
 
     // Set color based on player index
     this._color = PLAYER.COLORS[playerIndex % PLAYER.COLORS.length];
@@ -87,12 +79,6 @@ export default class Paddle {
   get arcWidth(): number {
     return this._arcWidth;
   }
-  get minAngle(): number {
-    return this._minAngle;
-  }
-  get maxAngle(): number {
-    return this._maxAngle;
-  }
   get color(): number {
     return this._color;
   }
@@ -110,38 +96,21 @@ export default class Paddle {
    * @param delta - Time delta in milliseconds
    */
   update(leftPressed: boolean, rightPressed: boolean, delta: number): void {
-    // Only move if exactly one direction is pressed
-    if (leftPressed === rightPressed) {
-      return;
-    }
-
-    // Calculate movement (degrees per second * seconds)
+    if (leftPressed === rightPressed) return;
     const deltaSeconds = delta / 1000;
     const movement = leftPressed
       ? -PADDLE.MOVE_SPEED * deltaSeconds
       : PADDLE.MOVE_SPEED * deltaSeconds;
-
-    // Apply movement with boundary checking
-    const newAngle = normalizeAngle(this._angle + movement);
-
-    if (this.isAngleInRange(newAngle)) {
-      this._angle = newAngle;
-      this.draw();
-    }
+    this._angle = normalizeAngle(this._angle + movement);
+    this.draw();
   }
 
   /**
-   * Check if an angle is within the paddle's movement range
-   * Handles the wrap-around case where minAngle > maxAngle
+   * Set paddle angle externally (used by GameArena for clamping)
    */
-  private isAngleInRange(angle: number): boolean {
-    if (this._minAngle <= this._maxAngle) {
-      // Normal case: range doesn't cross 0
-      return angle >= this._minAngle && angle <= this._maxAngle;
-    } else {
-      // Wrap-around case: range crosses 0 (e.g., 350 to 10)
-      return angle >= this._minAngle || angle <= this._maxAngle;
-    }
+  setAngle(angle: number): void {
+    this._angle = normalizeAngle(angle);
+    this.draw();
   }
 
   /**
@@ -250,10 +219,6 @@ export default class Paddle {
     this.paddleIndex = newPaddleIndex;
     this.totalPlayers = newTotalPlayers;
     this._arcWidth = getPaddleArcLength(this.totalPlayers);
-
-    const range = getPaddleMovementRange(this.paddleIndex, this.totalPlayers);
-    this._minAngle = range.minAngle;
-    this._maxAngle = range.maxAngle;
 
     // Reset to center position
     this._angle = getPaddleAngle(this.paddleIndex, this.totalPlayers);

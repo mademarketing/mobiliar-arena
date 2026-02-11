@@ -308,7 +308,7 @@ export default class Lobby extends Phaser.Scene {
 
     // Instructions
     this.instructionText = this.add
-      .text(centerX, ARENA.CENTER_Y, "Beide Tasten halten zum Beitreten", {
+      .text(centerX, ARENA.CENTER_Y, "", {
         fontFamily: "MuseoSans, sans-serif",
         fontSize: "36px",
         color: "#cccccc",

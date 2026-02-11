@@ -12,6 +12,7 @@ import {
   ARENA,
   BALL,
   GAME,
+  PLAYER,
   SCORING,
   DEPTH,
   COLORS,
@@ -107,11 +108,11 @@ export default class GameArena {
     this.graphics.lineStyle(ARENA.BORDER_WIDTH, COLORS.ARENA_BORDER, 1);
     this.graphics.strokeCircle(ARENA.CENTER_X, ARENA.CENTER_Y, ARENA.RADIUS);
 
-    // Draw sector lines for each player
-    const sectorAngle = 360 / this.activePlayers.length;
+    // Draw sector lines at fixed positions (matching lobby slots)
+    const sectorAngle = 360 / PLAYER.MAX_PLAYERS;
     this.graphics.lineStyle(2, COLORS.ARENA_BORDER, 0.3);
 
-    for (let i = 0; i < this.activePlayers.length; i++) {
+    for (let i = 0; i < PLAYER.MAX_PLAYERS; i++) {
       const angle = degreesToRadians(i * sectorAngle - 90);
       const startX = ARENA.CENTER_X + Math.cos(angle) * 50;
       const startY = ARENA.CENTER_Y + Math.sin(angle) * 50;
@@ -126,11 +127,10 @@ export default class GameArena {
    * Create paddles for all active players
    */
   private createPaddles(): void {
-    const totalPlayers = this.activePlayers.length;
-
     for (let i = 0; i < this.activePlayers.length; i++) {
       const playerIndex = this.activePlayers[i];
-      const paddle = new Paddle(this.scene, playerIndex, i, totalPlayers);
+      // Use playerIndex and MAX_PLAYERS so paddles stay at their lobby slot positions
+      const paddle = new Paddle(this.scene, playerIndex, playerIndex, PLAYER.MAX_PLAYERS);
       this.paddles.set(playerIndex, paddle);
     }
   }

@@ -1,7 +1,8 @@
 /**
  * Lobby Scene - Player join screen
  *
- * Players join by holding both buttons for 3 seconds (keyboard: hold number key).
+ * Players join by holding both buttons for 1.5 seconds (keyboard: hold both keys).
+ * Registration is shown as paddle arcs on the arena that fill from center outward.
  * Minimum 2 players required to start.
  * Auto-transitions to Countdown when 2+ players are ready.
  */
@@ -12,15 +13,18 @@ import {
   CANVAS,
   ARENA,
   PLAYER,
+  PADDLE,
   DEPTH,
   ANIMATION_DURATION,
   GAME,
   PLAYER_KEYS,
   PLAYER_KEY_HINTS,
+  EFFECTS,
 } from "../consts/GameConstants";
 import {
   polarToCartesian,
   degreesToRadians,
+  getPaddleArcLength,
 } from "../utils/CircularPhysics";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 
@@ -28,10 +32,11 @@ interface PlayerSlot {
   index: number;
   isJoined: boolean;
   joinProgress: number; // 0-1
+  centerAngle: number; // degrees
+  arcWidth: number; // degrees
   graphics: Phaser.GameObjects.Graphics;
   glowGraphics: Phaser.GameObjects.Graphics;
   text: Phaser.GameObjects.Text;
-  progressArc: Phaser.GameObjects.Graphics;
 }
 
 interface PlayerKeys {
@@ -70,7 +75,7 @@ export default class Lobby extends Phaser.Scene {
     // Draw arena outline
     this.drawArena();
 
-    // Create player slots
+    // Create player slots as paddle arcs
     this.createPlayerSlots();
 
     // Create UI text
@@ -108,34 +113,30 @@ export default class Lobby extends Phaser.Scene {
   }
 
   /**
-   * Create player slot indicators around the arena
+   * Create player slot indicators as paddle arcs around the arena
    */
   private createPlayerSlots(): void {
-    const slotRadius = ARENA.RADIUS + 80;
+    const arcWidth = getPaddleArcLength(PLAYER.MAX_PLAYERS);
 
     for (let i = 0; i < PLAYER.MAX_PLAYERS; i++) {
-      const angle = (i * 360) / PLAYER.MAX_PLAYERS;
-      const pos = polarToCartesian(angle, slotRadius);
+      const centerAngle = (i * 360) / PLAYER.MAX_PLAYERS;
 
       // Glow graphics (behind slot)
       const glowGraphics = this.add.graphics();
       glowGraphics.setDepth(DEPTH.UI_ELEMENTS - 1);
       glowGraphics.setBlendMode(Phaser.BlendModes.ADD);
 
-      // Slot background
+      // Main paddle arc graphics
       const graphics = this.add.graphics();
       graphics.setDepth(DEPTH.UI_ELEMENTS);
 
-      // Progress arc
-      const progressArc = this.add.graphics();
-      progressArc.setDepth(DEPTH.UI_ELEMENTS + 1);
-
-      // Player number text
+      // Key hint text positioned outside the arena (dev reference only)
+      const textPos = polarToCartesian(centerAngle, ARENA.RADIUS + 80);
       const text = this.add
-        .text(pos.x, pos.y, `P${i + 1}`, {
+        .text(textPos.x, textPos.y, PLAYER_KEY_HINTS[i] ?? `P${i + 1}`, {
           fontFamily: "MuseoSansBold, sans-serif",
-          fontSize: "28px",
-          color: "#666666",
+          fontSize: "22px",
+          color: "#444444",
         })
         .setOrigin(0.5)
         .setDepth(DEPTH.UI_ELEMENTS + 2);
@@ -144,10 +145,11 @@ export default class Lobby extends Phaser.Scene {
         index: i,
         isJoined: false,
         joinProgress: 0,
+        centerAngle,
+        arcWidth,
         graphics,
         glowGraphics,
         text,
-        progressArc,
       };
 
       this.playerSlots.push(slot);
@@ -156,60 +158,127 @@ export default class Lobby extends Phaser.Scene {
   }
 
   /**
-   * Draw a player slot with glow effect during hold
+   * Draw a paddle arc path (outer arc → line → inner arc → close)
+   */
+  private drawArcPath(
+    gfx: Phaser.GameObjects.Graphics,
+    centerAngle: number,
+    halfArc: number
+  ): void {
+    const startRad = degreesToRadians(centerAngle - halfArc - 90);
+    const endRad = degreesToRadians(centerAngle + halfArc - 90);
+
+    // Outer arc
+    gfx.arc(
+      ARENA.CENTER_X,
+      ARENA.CENTER_Y,
+      PADDLE.OUTER_RADIUS,
+      startRad,
+      endRad,
+      false
+    );
+
+    // Line to inner arc
+    const innerEndPos = polarToCartesian(
+      centerAngle + halfArc,
+      PADDLE.INNER_RADIUS
+    );
+    gfx.lineTo(innerEndPos.x, innerEndPos.y);
+
+    // Inner arc (reversed)
+    gfx.arc(
+      ARENA.CENTER_X,
+      ARENA.CENTER_Y,
+      PADDLE.INNER_RADIUS,
+      endRad,
+      startRad,
+      true
+    );
+
+    gfx.closePath();
+  }
+
+  /**
+   * Draw a player slot paddle arc
    */
   private drawSlot(slot: PlayerSlot): void {
-    const slotRadius = ARENA.RADIUS + 80;
-    const angle = (slot.index * 360) / PLAYER.MAX_PLAYERS;
-    const pos = polarToCartesian(angle, slotRadius);
     const color = PLAYER.COLORS[slot.index];
+    const halfArc = slot.arcWidth / 2;
 
     slot.graphics.clear();
-    slot.progressArc.clear();
     slot.glowGraphics.clear();
 
     if (slot.isJoined) {
-      // Filled circle for joined player
+      // Full filled paddle arc
       slot.graphics.fillStyle(color, 1);
-      slot.graphics.fillCircle(pos.x, pos.y, 40);
+      slot.graphics.beginPath();
+      this.drawArcPath(slot.graphics, slot.centerAngle, halfArc);
+      slot.graphics.fillPath();
+
+      // White outline
       slot.graphics.lineStyle(3, 0xffffff, 0.8);
-      slot.graphics.strokeCircle(pos.x, pos.y, 40);
+      slot.graphics.strokePath();
+
       slot.text.setColor("#ffffff");
       slot.text.setText(`P${slot.index + 1}`);
 
       // Subtle glow for joined players
-      slot.glowGraphics.fillStyle(color, 0.2);
-      slot.glowGraphics.fillCircle(pos.x, pos.y, 50);
-    } else {
-      // Empty circle for waiting slot
-      slot.graphics.lineStyle(3, color, 0.5);
-      slot.graphics.strokeCircle(pos.x, pos.y, 40);
-      slot.text.setColor("#666666");
-
-      // Show key hint
-      slot.text.setText(PLAYER_KEY_HINTS[slot.index] ?? `P${slot.index + 1}`);
-
-      // Draw join progress arc and glow
-      if (slot.joinProgress > 0) {
-        // Pulsing glow effect that intensifies with progress
-        const glowAlpha = 0.3 * slot.joinProgress;
-        const glowRadius = 50 + 10 * slot.joinProgress;
-
-        slot.glowGraphics.fillStyle(color, glowAlpha);
-        slot.glowGraphics.fillCircle(pos.x, pos.y, glowRadius);
-
-        // Progress arc
-        slot.progressArc.lineStyle(6, color, 1);
-        slot.progressArc.beginPath();
-        slot.progressArc.arc(
-          pos.x,
-          pos.y,
-          40,
-          degreesToRadians(-90),
-          degreesToRadians(-90 + slot.joinProgress * 360),
+      const startRad = degreesToRadians(slot.centerAngle - halfArc - 90);
+      const endRad = degreesToRadians(slot.centerAngle + halfArc - 90);
+      for (let i = 3; i >= 1; i--) {
+        const glowRadius = EFFECTS.PADDLE_GLOW_RADIUS * i * 0.5;
+        const glowAlpha = EFFECTS.PADDLE_GLOW_INTENSITY * (1 - i * 0.25);
+        slot.glowGraphics.lineStyle(glowRadius, color, glowAlpha);
+        slot.glowGraphics.beginPath();
+        slot.glowGraphics.arc(
+          ARENA.CENTER_X,
+          ARENA.CENTER_Y,
+          PADDLE.OUTER_RADIUS + glowRadius * 0.5,
+          startRad,
+          endRad,
           false
         );
-        slot.progressArc.strokePath();
+        slot.glowGraphics.strokePath();
+      }
+    } else {
+      // Outline only (waiting state)
+      slot.graphics.lineStyle(3, color, 0.5);
+      slot.graphics.beginPath();
+      this.drawArcPath(slot.graphics, slot.centerAngle, halfArc);
+      slot.graphics.strokePath();
+
+      slot.text.setColor("#666666");
+      slot.text.setText(PLAYER_KEY_HINTS[slot.index] ?? `P${slot.index + 1}`);
+
+      // Draw fill progress from center outward
+      if (slot.joinProgress > 0) {
+        const fillHalfArc = halfArc * slot.joinProgress;
+
+        // Fill arc
+        slot.graphics.fillStyle(color, 1);
+        slot.graphics.beginPath();
+        this.drawArcPath(slot.graphics, slot.centerAngle, fillHalfArc);
+        slot.graphics.fillPath();
+
+        // Glow that intensifies with progress
+        const startRad = degreesToRadians(slot.centerAngle - fillHalfArc - 90);
+        const endRad = degreesToRadians(slot.centerAngle + fillHalfArc - 90);
+        for (let i = 3; i >= 1; i--) {
+          const glowRadius = EFFECTS.PADDLE_GLOW_RADIUS * i * 0.5;
+          const glowAlpha =
+            EFFECTS.PADDLE_GLOW_INTENSITY * (1 - i * 0.25) * slot.joinProgress;
+          slot.glowGraphics.lineStyle(glowRadius, color, glowAlpha);
+          slot.glowGraphics.beginPath();
+          slot.glowGraphics.arc(
+            ARENA.CENTER_X,
+            ARENA.CENTER_Y,
+            PADDLE.OUTER_RADIUS + glowRadius * 0.5,
+            startRad,
+            endRad,
+            false
+          );
+          slot.glowGraphics.strokePath();
+        }
       }
     }
   }
@@ -239,7 +308,7 @@ export default class Lobby extends Phaser.Scene {
 
     // Instructions
     this.instructionText = this.add
-      .text(centerX, ARENA.CENTER_Y, "Beide Tasten drücken und 3 Sekunden halten", {
+      .text(centerX, ARENA.CENTER_Y, "Beide Tasten halten zum Beitreten", {
         fontFamily: "MuseoSans, sans-serif",
         fontSize: "36px",
         color: "#cccccc",
@@ -302,33 +371,33 @@ export default class Lobby extends Phaser.Scene {
     slot.joinProgress = 0;
     this.drawSlot(slot);
 
-    // Pop animation for the slot
-    const slotRadius = ARENA.RADIUS + 80;
-    const angle = (slot.index * 360) / PLAYER.MAX_PLAYERS;
-    const pos = polarToCartesian(angle, slotRadius);
-
-    // Scale pop effect using graphics
-    slot.graphics.setScale(0.5);
+    // Alpha fade-in
+    slot.graphics.setAlpha(0);
     this.tweens.add({
       targets: slot.graphics,
-      scaleX: 1,
-      scaleY: 1,
+      alpha: 1,
       duration: 300,
-      ease: "Back.out",
+      ease: "Cubic.out",
     });
 
-    // Text pop effect
-    slot.text.setScale(0.5);
+    slot.glowGraphics.setAlpha(0);
     this.tweens.add({
-      targets: slot.text,
-      scaleX: 1,
-      scaleY: 1,
+      targets: slot.glowGraphics,
+      alpha: 1,
       duration: 300,
-      ease: "Back.out",
+      ease: "Cubic.out",
     });
 
-    // Particle burst effect
-    this.createJoinParticleBurst(pos.x, pos.y, PLAYER.COLORS[playerIndex]);
+    // Particle burst effect at paddle center
+    const burstPos = polarToCartesian(
+      slot.centerAngle,
+      (PADDLE.INNER_RADIUS + PADDLE.OUTER_RADIUS) / 2
+    );
+    this.createJoinParticleBurst(
+      burstPos.x,
+      burstPos.y,
+      PLAYER.COLORS[playerIndex]
+    );
 
     this.updateUI();
   }
@@ -336,7 +405,11 @@ export default class Lobby extends Phaser.Scene {
   /**
    * Create particle burst effect when player joins
    */
-  private createJoinParticleBurst(x: number, y: number, color: number): void {
+  private createJoinParticleBurst(
+    x: number,
+    y: number,
+    color: number
+  ): void {
     if (!this.textures.exists("particle")) return;
 
     const particles = this.add.particles(x, y, "particle", {
@@ -492,7 +565,6 @@ export default class Lobby extends Phaser.Scene {
       slot.graphics.destroy();
       slot.glowGraphics.destroy();
       slot.text.destroy();
-      slot.progressArc.destroy();
     }
     this.playerSlots = [];
     this.playerKeys = [];

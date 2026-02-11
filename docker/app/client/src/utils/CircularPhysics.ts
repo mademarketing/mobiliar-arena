@@ -156,11 +156,12 @@ export function checkPaddleCollision(
 ): boolean {
   const ball = cartesianToPolar(ballX, ballY);
 
-  // Check if ball is in the radial range of the paddle (with ball radius considered)
+  // Only detect collision at the inner face of the paddle.
+  // The ball's outer edge must be touching/past the inner radius,
+  // but the ball's center must still be inside the arena (not past the inner radius).
   const ballOuterEdge = ball.radius + ballRadius;
-  const ballInnerEdge = ball.radius - ballRadius;
 
-  if (ballOuterEdge < paddleInnerRadius || ballInnerEdge > paddleOuterRadius) {
+  if (ballOuterEdge < paddleInnerRadius || ball.radius > paddleInnerRadius + ballRadius) {
     return false;
   }
 

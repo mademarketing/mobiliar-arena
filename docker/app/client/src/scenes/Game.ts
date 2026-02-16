@@ -19,6 +19,7 @@ import {
   PLAYER_KEYS,
   PLAYER_KEY_HINTS,
 } from "../consts/GameConstants";
+import GamePlugin from "../plugins/GamePlugin";
 import GameArena from "../managers/GameArena";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 import { polarToCartesian } from "../utils/CircularPhysics";
@@ -28,6 +29,7 @@ export default class Game extends Phaser.Scene {
   private gameArena?: GameArena;
   private players: number[] = [];
   private playerKeys: { left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key }[] = [];
+  private gamePlugin?: GamePlugin;
 
   // UI elements
   private timerText?: Phaser.GameObjects.Text;
@@ -52,6 +54,9 @@ export default class Game extends Phaser.Scene {
 
   create(): void {
     this.events.once("shutdown", this.shutdown, this);
+
+    // Get GamePlugin reference for hardware button state
+    this.gamePlugin = this.plugins.get("GamePlugin") as GamePlugin;
 
     // Reset state
     this.timeRemaining = GAME.DURATION_MS;
@@ -313,9 +318,12 @@ export default class Game extends Phaser.Scene {
       const keys = this.playerKeys[playerIndex];
       if (!keys) continue;
 
-      if (keys.left.isDown) {
+      const leftDown = keys.left.isDown || this.gamePlugin?.isButtonDown(playerIndex, "left");
+      const rightDown = keys.right.isDown || this.gamePlugin?.isButtonDown(playerIndex, "right");
+
+      if (leftDown) {
         this.gameArena?.movePaddle(playerIndex, -1, delta);
-      } else if (keys.right.isDown) {
+      } else if (rightDown) {
         this.gameArena?.movePaddle(playerIndex, 1, delta);
       }
     }

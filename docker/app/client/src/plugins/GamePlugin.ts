@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import io from "socket.io-client";
-import GameEvents from "../../../shared/GameEvents";
+import GameEvents, { PlayerInputPayload } from "../../../shared/GameEvents";
 
 export default class GamePlugin extends Phaser.Plugins.BasePlugin {
   // @ts-ignore:
@@ -9,6 +9,7 @@ export default class GamePlugin extends Phaser.Plugins.BasePlugin {
   private _data: Phaser.Data.DataManager;
   private _startupTime: Date;
   private _isPaused = false;
+  private _buttonStates: Map<string, boolean> = new Map();
 
   constructor(pluginManager: Phaser.Plugins.PluginManager) {
     super(pluginManager);
@@ -41,6 +42,12 @@ export default class GamePlugin extends Phaser.Plugins.BasePlugin {
       this._isPaused = false;
       this._events.emit(GameEvents.GameResumed, payload);
     });
+
+    // Hardware button state tracking
+    this._socket.on(GameEvents.PlayerInput, (payload: PlayerInputPayload) => {
+      const key = `${payload.player}:${payload.direction}`;
+      this._buttonStates.set(key, payload.pressed);
+    });
   }
 
   get startupTime() {
@@ -57,6 +64,13 @@ export default class GamePlugin extends Phaser.Plugins.BasePlugin {
 
   get data() {
     return this._data;
+  }
+
+  /**
+   * Check if a hardware button is currently pressed
+   */
+  isButtonDown(player: number, direction: "left" | "right"): boolean {
+    return this._buttonStates.get(`${player}:${direction}`) ?? false;
   }
 
   /**

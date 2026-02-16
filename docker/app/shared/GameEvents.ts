@@ -38,4 +38,11 @@ enum GameEvents {
   ScoreUpdate = "score-update",
 }
 
+export interface PlayerInputPayload {
+  player: number;
+  direction: "left" | "right";
+  pressed: boolean;
+  timestamp: number;
+}
+
 export default GameEvents;

@@ -1,9 +1,8 @@
 import express = require("express");
 import { Socket } from "socket.io";
 import GameEvents from "../shared/GameEvents";
-import phidget22 = require("phidget22");
-import { Phidget } from "phidget22";
 import "dotenv/config";
+import { initPhidgets } from "./src/utils/phidgets";
 import { SettingsLoader } from "./src/services/SettingsLoader";
 import { PrizeEngine, PauseCallback } from "./src/services/PrizeEngine";
 import { PrizeDatabase } from "./src/database/PrizeDatabase";
@@ -27,11 +26,6 @@ const cors = require("cors");
 
 const port = parseInt(process.env.PORT || "3000", 10);
 const isDev = process.env.NODE_ENV !== "production";
-
-// Phidget configuration
-const SERVER_PORT = 5661;
-const url = `phid://${process.env.PHIDGETSERVER || "localhost"}:${SERVER_PORT}`;
-console.log(`Connecting to Phidget server: ${url}`);
 
 // Load configuration from settings.json
 const settingsPath = "./content/settings.json";
@@ -130,55 +124,8 @@ try {
   process.exit(1);
 }
 
-// Phidget button setup
-function runCode() {
-  console.log("Connected to Phidget server");
-
-  function detach(this: Phidget, ch: Phidget) {
-    console.log(`${ch.getChannel()} detached`);
-  }
-
-  function attach(this: Phidget, ch: Phidget) {
-    // @ts-ignore
-    console.log(
-      `Attached: ${ch.getDeviceName()} on Serial ${ch.getDeviceSerialNumber()} Channel: ${ch.getChannel()}`
-    );
-  }
-
-  function makeButtonStateChange(channel: Number) {
-    function stateChange(state: boolean) {
-      if (state === false) {
-        console.log("Physical button pressed on channel:", channel);
-
-        // Emit player input event to all clients
-        io.emit(GameEvents.PlayerInput, { channel, pressed: true });
-      }
-    }
-    return stateChange;
-  }
-
-  const settings = settingsLoader.getAllSettings();
-
-  const button = new phidget22.DigitalInput();
-  button.setIsHubPortDevice(true);
-  button.setHubPort(1);
-  button.onStateChange = makeButtonStateChange(1);
-  button.onAttach = attach;
-  button.onDetach = detach;
-  button.open().catch(function (err) {
-    console.log("Failed to open Digital Input Channel. Err: " + err);
-  });
-}
-
-// Connect to Phidget server
-const conn = new phidget22.Connection(url);
-conn
-  .connect()
-  .then(runCode)
-  .catch((err: Error) => {
-    console.log(`Error connecting to Phidget server: ${err}`);
-    console.log("Continuing without hardware button support");
-  });
+// Initialize Phidgets hardware input (USB via VINT hub)
+initPhidgets(io);
 
 // Express middleware
 app.use(cors());

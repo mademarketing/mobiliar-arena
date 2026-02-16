@@ -27,6 +27,7 @@ import {
   getPaddleArcLength,
 } from "../utils/CircularPhysics";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
+import GamePlugin from "../plugins/GamePlugin";
 
 interface PlayerSlot {
   index: number;
@@ -56,6 +57,7 @@ export default class Lobby extends Phaser.Scene {
   private holdStartTimes: Map<number, number> = new Map();
   private autoStartTimer?: Phaser.Time.TimerEvent;
   private playerKeys: PlayerKeys[] = [];
+  private gamePlugin?: GamePlugin;
 
   constructor() {
     super(SceneKeys.Lobby);
@@ -63,6 +65,9 @@ export default class Lobby extends Phaser.Scene {
 
   create(): void {
     this.events.once("shutdown", this.shutdown, this);
+
+    // Get GamePlugin reference for hardware button state
+    this.gamePlugin = this.plugins.get("GamePlugin") as GamePlugin;
 
     // Reset state
     this.joinedPlayers.clear();
@@ -513,7 +518,9 @@ export default class Lobby extends Phaser.Scene {
       // Skip already joined players (no leave option)
       if (slot.isJoined) continue;
 
-      const bothDown = keys.left.isDown && keys.right.isDown;
+      const leftDown = keys.left.isDown || this.gamePlugin?.isButtonDown(i, "left");
+      const rightDown = keys.right.isDown || this.gamePlugin?.isButtonDown(i, "right");
+      const bothDown = leftDown && rightDown;
 
       if (bothDown) {
         // Start tracking if not already

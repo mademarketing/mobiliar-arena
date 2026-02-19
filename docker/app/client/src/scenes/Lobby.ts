@@ -94,27 +94,11 @@ export default class Lobby extends Phaser.Scene {
   }
 
   /**
-   * Draw the arena outline
+   * Draw the arena (no visible border)
    */
   private drawArena(): void {
     this.arenaGraphics = this.add.graphics();
     this.arenaGraphics.setDepth(DEPTH.ARENA);
-
-    // Arena border
-    this.arenaGraphics.lineStyle(ARENA.BORDER_WIDTH, 0x333333, 1);
-    this.arenaGraphics.strokeCircle(
-      ARENA.CENTER_X,
-      ARENA.CENTER_Y,
-      ARENA.RADIUS
-    );
-
-    // Inner guide circle
-    this.arenaGraphics.lineStyle(2, 0x333333, 0.3);
-    this.arenaGraphics.strokeCircle(
-      ARENA.CENTER_X,
-      ARENA.CENTER_Y,
-      ARENA.RADIUS - 50
-    );
   }
 
   /**

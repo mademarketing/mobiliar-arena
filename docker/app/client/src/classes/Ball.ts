@@ -224,11 +224,11 @@ export default class Ball {
   updateVisuals(time: number): void {
     if (!this._isActive) return;
 
-    // Update rotation based on velocity
+    // Update rotation based on velocity (theme-dependent speed)
     const speed = this.speed;
     if (speed > 0) {
-      // Rotate in the direction of movement
-      const rotationAmount = speed * EFFECTS.BALL_ROTATION_SPEED * 0.016; // ~60fps
+      const themeMultiplier = ThemeManager.getInstance().getBallRotationMultiplier();
+      const rotationAmount = speed * EFFECTS.BALL_ROTATION_SPEED * themeMultiplier * 0.016; // ~60fps
       this._rotation += rotationAmount;
       this._sprite.setRotation(this._rotation);
     }

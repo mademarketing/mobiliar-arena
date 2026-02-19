@@ -77,6 +77,25 @@ export default class ThemeManager {
   }
 
   /**
+   * Get theme-specific ball rotation speed multiplier
+   * Some ball types (handball, volleyball) look better with slow rotation
+   */
+  getBallRotationMultiplier(): number {
+    switch (this.currentTheme) {
+      case "basketball":
+        return 1.0;
+      case "handball":
+        return 0.7;
+      case "volleyball":
+        return 0.1;
+      case "floorball":
+        return 0.2;
+      default:
+        return 1.0;
+    }
+  }
+
+  /**
    * Get theme-specific colors for particles/effects
    */
   getThemeColors(): number[] {

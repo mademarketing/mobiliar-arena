@@ -220,6 +220,56 @@ app.get("/api/settings", (req, res) => {
   }
 });
 
+// Theme API endpoint
+app.get("/api/admin/theme", (req, res) => {
+  try {
+    const settings = settingsLoader.getAllSettings();
+    res.json({
+      success: true,
+      data: {
+        active: (settings as any).theme || "basketball",
+        available: (settings as any).availableThemes || ["basketball", "handball", "volleyball", "floorball", "corporate"],
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching theme:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch theme" });
+  }
+});
+
+app.put("/api/admin/theme", (req, res) => {
+  try {
+    const { theme } = req.body;
+    const settings = settingsLoader.getAllSettings();
+    const available = (settings as any).availableThemes || ["basketball", "handball", "volleyball", "floorball", "corporate"];
+
+    if (!theme || !available.includes(theme)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid theme. Must be one of: ${available.join(", ")}`,
+      });
+    }
+
+    // Update settings.json on disk
+    const fs = require("fs");
+    const rawSettings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    rawSettings.theme = theme;
+    fs.writeFileSync(settingsPath, JSON.stringify(rawSettings, null, 2));
+
+    // Reload settings in memory
+    (settingsLoader as any).settings = rawSettings;
+
+    // Notify clients to reload
+    io.emit(GameEvents.Reload);
+
+    console.log(`Theme changed to: ${theme}`);
+    res.json({ success: true, data: { active: theme, available } });
+  } catch (error) {
+    console.error("Error updating theme:", error);
+    res.status(500).json({ success: false, error: "Failed to update theme" });
+  }
+});
+
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({

@@ -97,32 +97,10 @@ export default class GameArena {
   }
 
   /**
-   * Draw the arena background and border
+   * Draw the arena background (no visible border)
    */
   private drawArena(): void {
     this.graphics.clear();
-
-    // Arena fill
-   //this.graphics.fillStyle(COLORS.ARENA_FILL, 1);
-    //this.graphics.fillCircle(ARENA.CENTER_X, ARENA.CENTER_Y, ARENA.RADIUS);
-
-    // Arena border
-    this.graphics.lineStyle(ARENA.BORDER_WIDTH, COLORS.ARENA_BORDER, 1);
-    this.graphics.strokeCircle(ARENA.CENTER_X, ARENA.CENTER_Y, ARENA.RADIUS);
-
-    // Draw sector lines at fixed positions (matching lobby slots)
-    const sectorAngle = 360 / PLAYER.MAX_PLAYERS;
-    this.graphics.lineStyle(2, COLORS.ARENA_BORDER, 0.3);
-
-    for (let i = 0; i < PLAYER.MAX_PLAYERS; i++) {
-      const angle = degreesToRadians(i * sectorAngle - 90);
-      const startX = ARENA.CENTER_X + Math.cos(angle) * 50;
-      const startY = ARENA.CENTER_Y + Math.sin(angle) * 50;
-      const endX = ARENA.CENTER_X + Math.cos(angle) * ARENA.RADIUS;
-      const endY = ARENA.CENTER_Y + Math.sin(angle) * ARENA.RADIUS;
-
-      this.graphics.lineBetween(startX, startY, endX, endY);
-    }
   }
 
   /**

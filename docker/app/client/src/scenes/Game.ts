@@ -33,9 +33,7 @@ export default class Game extends Phaser.Scene {
 
   // UI elements
   private timerText?: Phaser.GameObjects.Text;
-  private timerTextFlipped?: Phaser.GameObjects.Text;
   private scoreText?: Phaser.GameObjects.Text;
-  private scoreTextFlipped?: Phaser.GameObjects.Text;
   private comboText?: Phaser.GameObjects.Text;
 
   // Game state
@@ -109,10 +107,11 @@ export default class Game extends Phaser.Scene {
    */
   private createUI(): void {
     const centerX = CANVAS.WIDTH / 2;
+    const centerY = CANVAS.HEIGHT / 2;
 
-    // Timer at bottom
+    // Timer centered
     this.timerText = this.add
-      .text(centerX, 1080 - 60, this.formatTime(this.timeRemaining), {
+      .text(centerX, centerY + 40, this.formatTime(this.timeRemaining), {
         fontFamily: "MuseoSansBold, sans-serif",
         fontSize: "32px",
         color: "#ffffff",
@@ -127,27 +126,9 @@ export default class Game extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(DEPTH.UI_ELEMENTS);
 
-    // Timer flipped at top
-    this.timerTextFlipped = this.add
-      .text(centerX, 60, this.formatTime(this.timeRemaining), {
-        fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "32px",
-        color: "#ffffff",
-        shadow: {
-          offsetX: 3,
-          offsetY: 3,
-          color: "#333333",
-          blur: 0,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setRotation(Math.PI)
-      .setDepth(DEPTH.UI_ELEMENTS);
-
-    // Score at center (large)
+    // Score centered (large)
     this.scoreText = this.add
-      .text(centerX, CANVAS.HEIGHT / 2 + 80, "0", {
+      .text(centerX, centerY - 20, "0", {
         fontFamily: "MuseoSansBold, sans-serif",
         fontSize: "80px",
         color: "#ffffff",
@@ -163,42 +144,14 @@ export default class Game extends Phaser.Scene {
       .setDepth(DEPTH.UI_ELEMENTS)
       .setAlpha(0.8);
 
-    // Score flipped 180° for opposite side
-    this.scoreTextFlipped = this.add
-      .text(centerX, CANVAS.HEIGHT / 2 - 80, "0", {
-        fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "80px",
-        color: "#ffffff",
-        shadow: {
-          offsetX: 4,
-          offsetY: 4,
-          color: "#333333",
-          blur: 0,
-          fill: true,
-        },
-      })
-      .setOrigin(0.5)
-      .setRotation(Math.PI)
-      .setDepth(DEPTH.UI_ELEMENTS)
-      .setAlpha(0.8);
-
-    // Combo indicator below score
+    // Combo indicator below timer
     this.comboText = this.add
-      .text(centerX, CANVAS.HEIGHT / 2 + 80, "", {
+      .text(centerX, centerY + 80, "", {
         fontFamily: "MuseoSans, sans-serif",
         fontSize: "36px",
         color: "#4ecdc4",
       })
       .setOrigin(0.5)
-      .setDepth(DEPTH.UI_ELEMENTS);
-
-    // Player count indicator
-    this.add
-      .text(50, 50, `${this.players.length} Players`, {
-        fontFamily: "MuseoSans, sans-serif",
-        fontSize: "24px",
-        color: "#888888",
-      })
       .setDepth(DEPTH.UI_ELEMENTS);
   }
 
@@ -235,16 +188,14 @@ export default class Game extends Phaser.Scene {
   private onTimerTick(): void {
     this.timeRemaining -= 100;
 
-    // Update timer display (both orientations)
+    // Update timer display
     const timeStr = this.formatTime(this.timeRemaining);
     this.timerText?.setText(timeStr);
-    this.timerTextFlipped?.setText(timeStr);
 
     // Flash timer when low
     if (this.timeRemaining <= 10000 && this.timeRemaining > 0) {
       const color = this.timeRemaining % 1000 < 500 ? "#ff6b6b" : "#ffffff";
       this.timerText?.setColor(color);
-      this.timerTextFlipped?.setColor(color);
     }
 
     // Check for game end
@@ -342,9 +293,8 @@ export default class Game extends Phaser.Scene {
     const state = this.gameArena?.getState();
     if (!state) return;
 
-    // Update score (both orientations)
+    // Update score
     this.scoreText?.setText(String(state.score));
-    this.scoreTextFlipped?.setText(String(state.score));
 
     // Update combo
     if (state.combo > 1) {
@@ -379,12 +329,8 @@ export default class Game extends Phaser.Scene {
     this.backdrop = undefined;
     this.timerText?.destroy();
     this.timerText = undefined;
-    this.timerTextFlipped?.destroy();
-    this.timerTextFlipped = undefined;
     this.scoreText?.destroy();
     this.scoreText = undefined;
-    this.scoreTextFlipped?.destroy();
-    this.scoreTextFlipped = undefined;
     this.comboText?.destroy();
     this.comboText = undefined;
   }

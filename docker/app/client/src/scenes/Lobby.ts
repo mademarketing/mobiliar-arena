@@ -231,7 +231,7 @@ export default class Lobby extends Phaser.Scene {
       }
     } else {
       // Outline only (waiting state)
-      slot.graphics.lineStyle(3, color, 0.5);
+      slot.graphics.lineStyle(5, color, 0.7);
       slot.graphics.beginPath();
       this.drawArcPath(slot.graphics, slot.centerAngle, halfArc);
       slot.graphics.strokePath();
@@ -280,10 +280,11 @@ export default class Lobby extends Phaser.Scene {
 
     // Instructions
     this.instructionText = this.add
-      .text(centerX, ARENA.CENTER_Y, "", {
+      .text(centerX, ARENA.CENTER_Y, "Drücke beide Tasten,\num dich anzumelden", {
         fontFamily: "MuseoSans, sans-serif",
-        fontSize: "36px",
-        color: "#cccccc",
+        fontSize: "25px",
+        color: "#ffffff",
+        align: "center",
       })
       .setOrigin(0.5)
       .setDepth(DEPTH.UI_ELEMENTS);

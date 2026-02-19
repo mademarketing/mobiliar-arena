@@ -93,7 +93,7 @@ export default class Countdown extends Phaser.Scene {
     this.countdownText = this.add
       .text(centerX, centerY, String(this.countdownValue), {
         fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "300px",
+        fontSize: "240px",
         color: "#ffffff",
         shadow: {
           offsetX: 6,
@@ -140,8 +140,8 @@ export default class Countdown extends Phaser.Scene {
       // Update number with animation
       this.updateCountdownDisplay(String(this.countdownValue));
     } else if (this.countdownValue === 0) {
-      // Show "GO!"
-      this.updateCountdownDisplay("GO!", "#4ecdc4");
+      // Show "GO!" (smaller to fit within circle)
+      this.updateCountdownDisplay("GO!", "#ffffff", "130px");
 
       // Wait a moment then start game
       this.time.delayedCall(500, () => {
@@ -153,7 +153,7 @@ export default class Countdown extends Phaser.Scene {
   /**
    * Update countdown display with animation
    */
-  private updateCountdownDisplay(text: string, color?: string): void {
+  private updateCountdownDisplay(text: string, color?: string, fontSize?: string): void {
     if (!this.countdownText) return;
 
     // Pulse animation
@@ -164,6 +164,9 @@ export default class Countdown extends Phaser.Scene {
       ease: "Back.out",
     });
 
+    if (fontSize) {
+      this.countdownText.setFontSize(fontSize);
+    }
     this.countdownText.setText(text);
     if (color) {
       this.countdownText.setColor(color);

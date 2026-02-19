@@ -57,6 +57,13 @@ export default class ThemeManager {
   }
 
   /**
+   * Get the video key for the current theme's intro video
+   */
+  getIntroVideoKey(): string {
+    return `theme-${this.currentTheme}-intro`;
+  }
+
+  /**
    * Load theme assets into the scene
    * Call this in the Preload scene's preload() method
    */
@@ -71,6 +78,12 @@ export default class ThemeManager {
     scene.load.image(
       this.getBallKey(),
       `assets/themes/${theme}/ball.png`
+    );
+
+    scene.load.video(
+      this.getIntroVideoKey(),
+      `assets/themes/${theme}/intro.mp4`,
+      true
     );
 
     console.log(`ThemeManager: Loading assets for theme "${theme}"`);

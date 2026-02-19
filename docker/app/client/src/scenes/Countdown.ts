@@ -27,6 +27,9 @@ export default class Countdown extends Phaser.Scene {
   private countdownText?: Phaser.GameObjects.Text;
   private countdownValue: number = GAME.COUNTDOWN_SECONDS;
   private countdownTimer?: Phaser.Time.TimerEvent;
+  private introCircle?: Phaser.GameObjects.Graphics;
+  private introBorder?: Phaser.GameObjects.Graphics;
+  private introText?: Phaser.GameObjects.Text;
 
   constructor() {
     super(SceneKeys.Countdown);
@@ -72,14 +75,61 @@ export default class Countdown extends Phaser.Scene {
         .setDepth(DEPTH.UI_ELEMENTS);
     }
 
-    // Create countdown text
-    this.createCountdownUI();
-
-    // Start countdown
-    this.startCountdown();
-
     // Fade in
     this.cameras.main.fadeIn(300, 0, 0, 0);
+
+    // Show explanation sequence, then countdown
+    this.showIntroSequence();
+  }
+
+  /**
+   * Show explanation screens before countdown
+   */
+  private showIntroSequence(): void {
+    const centerX = CANVAS.WIDTH / 2;
+    const centerY = CANVAS.HEIGHT / 2;
+
+    // Red circle (1080px diameter = 540px radius), behind paddles
+    this.introCircle = this.add.graphics();
+    this.introCircle.fillStyle(0xc81e32);
+    this.introCircle.fillCircle(centerX, centerY, 502);
+    this.introCircle.setDepth(DEPTH.ARENA + 1);
+
+    // Thin white border circle just outside paddles
+    this.introBorder = this.add.graphics();
+    this.introBorder.lineStyle(5, 0xffffff);
+    this.introBorder.strokeCircle(centerX, centerY, 460);
+    this.introBorder.setDepth(DEPTH.PADDLES + 1);
+
+    // Intro text, above paddles
+    this.introText = this.add
+      .text(centerX, centerY, "Ihr steuert das Paddle\nmit den Tasten\nnach links und rechts.", {
+        fontFamily: "MuseoSansBold, sans-serif",
+        fontSize: "48px",
+        color: "#ffffff",
+        align: "center",
+        lineSpacing: 12,
+      })
+      .setOrigin(0.5)
+      .setDepth(DEPTH.UI_ELEMENTS);
+
+    // Second message after 3s
+    this.time.delayedCall(3000, () => {
+      this.introText?.setText("Ihr spielt zusammen.\nHaltet die Bälle im Spiel.");
+    });
+
+    // Remove intro, start countdown after 6s
+    this.time.delayedCall(6000, () => {
+      this.introCircle?.destroy();
+      this.introCircle = undefined;
+      this.introBorder?.destroy();
+      this.introBorder = undefined;
+      this.introText?.destroy();
+      this.introText = undefined;
+
+      this.createCountdownUI();
+      this.startCountdown();
+    });
   }
 
   /**
@@ -220,5 +270,12 @@ export default class Countdown extends Phaser.Scene {
 
     this.countdownText?.destroy();
     this.countdownText = undefined;
+
+    this.introCircle?.destroy();
+    this.introCircle = undefined;
+    this.introBorder?.destroy();
+    this.introBorder = undefined;
+    this.introText?.destroy();
+    this.introText = undefined;
   }
 }

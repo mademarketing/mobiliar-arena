@@ -164,6 +164,9 @@ export default class Game extends Phaser.Scene {
 
     // Escape: End game early
     this.input.keyboard?.on("keydown-ESC", this.handleEndGame, this);
+
+    // R: Skip to Result screen with test score
+    this.input.keyboard?.on("keydown-R", this.handleSkipToResult, this);
   }
 
   /**
@@ -228,6 +231,23 @@ export default class Game extends Phaser.Scene {
    */
   private handleEndGame = (): void => {
     this.endGame();
+  };
+
+  /**
+   * Skip to Result with a test high score
+   */
+  private handleSkipToResult = (): void => {
+    if (this.isGameOver) return;
+    this.isGameOver = true;
+    this.gameTimer?.remove();
+    this.gameTimer = undefined;
+    this.gameArena?.stop();
+    const highScore = this.game.registry.get("highScore") || 0;
+    this.scene.start(SceneKeys.Result, {
+      score: highScore + 42,
+      playerCount: this.players.length,
+      isTeamGame: true,
+    });
   };
 
   /**
@@ -311,6 +331,7 @@ export default class Game extends Phaser.Scene {
     // Remove keyboard listeners
     this.input.keyboard?.off("keydown-SPACE", this.handleSpawnBall, this);
     this.input.keyboard?.off("keydown-ESC", this.handleEndGame, this);
+    this.input.keyboard?.off("keydown-R", this.handleSkipToResult, this);
 
     // Remove all keys to prevent state bleeding between scenes
     this.input.keyboard?.removeAllKeys(true);

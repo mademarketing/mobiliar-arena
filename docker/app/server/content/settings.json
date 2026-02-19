@@ -3,7 +3,7 @@
     "title": "Kiosk Game",
     "version": "1.0.0"
   },
-  "theme": "floorball",
+  "theme": "basketball",
   "availableThemes": [
     "basketball",
     "handball",

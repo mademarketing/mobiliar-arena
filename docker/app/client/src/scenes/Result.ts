@@ -27,6 +27,7 @@ export default class Result extends Phaser.Scene {
   private autoDismissTimer?: Phaser.Time.TimerEvent;
   private backdrop?: AnimatedBackdrop;
   private confettiEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
+  private circleMask?: Phaser.Display.Masks.GeometryMask;
 
   // Team game mode
   private gameResult?: GameResult;
@@ -56,6 +57,12 @@ export default class Result extends Phaser.Scene {
     const centerX = CANVAS.WIDTH / 2;
     const centerY = CANVAS.HEIGHT / 2;
 
+    // Create circular mask for confetti (1080px diameter = 540px radius)
+    const maskGraphics = this.make.graphics({}, false);
+    maskGraphics.fillStyle(0xffffff);
+    maskGraphics.fillCircle(centerX, centerY, 540);
+    this.circleMask = maskGraphics.createGeometryMask();
+
     // Show team score display
     this.createTeamScoreDisplay(centerX, centerY);
 
@@ -83,7 +90,7 @@ export default class Result extends Phaser.Scene {
     const scoreText = this.add
       .text(centerX, centerY, "0", {
         fontFamily: "MuseoSansBold, sans-serif",
-        fontSize: "200px",
+        fontSize: "180px",
         color: "#ffffff",
         shadow: {
           offsetX: 6,
@@ -130,7 +137,7 @@ export default class Result extends Phaser.Scene {
       .text(centerX, 180, "NEW HIGH SCORE!", {
         fontFamily: "MuseoSansBold, sans-serif",
         fontSize: "42px",
-        color: "#ffd700",
+        color: "#ffffff",
         shadow: {
           offsetX: 3,
           offsetY: 3,
@@ -200,6 +207,9 @@ export default class Result extends Phaser.Scene {
     });
 
     this.confettiEmitter.setDepth(DEPTH.PARTICLES);
+    if (this.circleMask) {
+      this.confettiEmitter.setMask(this.circleMask);
+    }
 
     // Stop confetti after a while
     this.time.delayedCall(6000, () => {
@@ -242,6 +252,9 @@ export default class Result extends Phaser.Scene {
         .circle(x, startY, Phaser.Math.Between(5, 20), color)
         .setAlpha(0.8)
         .setDepth(DEPTH.PARTICLES);
+      if (this.circleMask) {
+        particle.setMask(this.circleMask);
+      }
 
       this.tweens.add({
         targets: particle,

@@ -28,6 +28,7 @@ export default class Ball {
   private _id: number;
 
   // Visual effects
+  private _baseScale: number = 1;
   private _rotation: number = 0;
   private _trailPositions: TrailPosition[] = [];
   private _trailGraphics: Phaser.GameObjects.Graphics;
@@ -59,8 +60,8 @@ export default class Ball {
       // Scale theme ball to match expected ball radius
       const texture = scene.textures.get(ballKey);
       const frame = texture.get();
-      const scale = (BALL.RADIUS * 2) / Math.max(frame.width, frame.height);
-      this._sprite.setScale(scale);
+      this._baseScale = (BALL.RADIUS * 2) / Math.max(frame.width, frame.height);
+      this._sprite.setScale(this._baseScale);
     } else {
       // Fallback to generated texture
       this.createBallTexture();
@@ -233,6 +234,12 @@ export default class Ball {
       this._sprite.setRotation(this._rotation);
     }
 
+    // Depth scale: ball appears larger near center, smaller near edge
+    const polar = cartesianToPolar(this._sprite.x, this._sprite.y);
+    const t = Math.min(polar.radius / ARENA_RADIUS, 1);
+    const depthScale = EFFECTS.BALL_DEPTH_SCALE_MAX - (EFFECTS.BALL_DEPTH_SCALE_MAX - EFFECTS.BALL_DEPTH_SCALE_MIN) * t;
+    this._sprite.setScale(this._baseScale * depthScale);
+
     // Update trail positions (throttled)
     if (time - this._lastTrailUpdate > this._trailUpdateInterval) {
       this._lastTrailUpdate = time;
@@ -261,10 +268,15 @@ export default class Ball {
     for (let i = 1; i < this._trailPositions.length; i++) {
       const pos = this._trailPositions[i];
       const alpha = EFFECTS.BALL_TRAIL_ALPHA * (1 - i / this._trailPositions.length);
-      const radius = BALL.RADIUS * (1 - i / this._trailPositions.length * 0.3);
+      const baseRadius = BALL.RADIUS * (1 - i / this._trailPositions.length * 0.3);
+
+      // Apply depth scale to trail circles
+      const polar = cartesianToPolar(pos.x, pos.y);
+      const t = Math.min(polar.radius / ARENA_RADIUS, 1);
+      const trailDepthScale = EFFECTS.BALL_DEPTH_SCALE_MAX - (EFFECTS.BALL_DEPTH_SCALE_MAX - EFFECTS.BALL_DEPTH_SCALE_MIN) * t;
 
       this._trailGraphics.fillStyle(0xffffff, alpha);
-      this._trailGraphics.fillCircle(pos.x, pos.y, radius);
+      this._trailGraphics.fillCircle(pos.x, pos.y, baseRadius * trailDepthScale);
     }
   }
 

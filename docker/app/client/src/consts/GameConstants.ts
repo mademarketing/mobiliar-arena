@@ -136,6 +136,8 @@ export const EFFECTS = {
   FLOATING_TEXT_DURATION: 800,
   FLOATING_TEXT_RISE: 50,
   COMBO_MILESTONES: [5, 10, 15, 20, 25, 30] as const,
+  BALL_DEPTH_SCALE_MAX: 1.4, // Scale multiplier at arena center
+  BALL_DEPTH_SCALE_MIN: 0.7, // Scale multiplier at arena edge
 } as const;
 
 // Default export

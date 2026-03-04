@@ -8,8 +8,9 @@
 
 import Phaser from "phaser";
 import SceneKeys from "../consts/SceneKeys";
-import { CANVAS, DEPTH, ANIMATION_DURATION, GAME, PLAYER } from "../consts/GameConstants";
+import { CANVAS, ARENA, DEPTH, ANIMATION_DURATION, GAME, PLAYER } from "../consts/GameConstants";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
+import InfoPanel from "../utils/InfoPanel";
 
 interface GameResult {
   score: number;
@@ -26,6 +27,7 @@ interface GameResult {
 export default class Result extends Phaser.Scene {
   private autoDismissTimer?: Phaser.Time.TimerEvent;
   private backdrop?: AnimatedBackdrop;
+  private infoPanel?: InfoPanel;
   private confettiEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
   private circleMask?: Phaser.Display.Masks.GeometryMask;
 
@@ -54,10 +56,13 @@ export default class Result extends Phaser.Scene {
     // Animated backdrop
     this.backdrop = new AnimatedBackdrop(this).create();
 
-    const centerX = CANVAS.WIDTH / 2;
-    const centerY = CANVAS.HEIGHT / 2;
+    // Info panel (left side)
+    this.infoPanel = new InfoPanel(this);
 
-    // Create circular mask for confetti (1080px diameter = 540px radius)
+    const centerX = ARENA.CENTER_X;
+    const centerY = ARENA.CENTER_Y;
+
+    // Create circular mask for confetti
     const maskGraphics = this.make.graphics({}, false);
     maskGraphics.fillStyle(0xffffff);
     maskGraphics.fillCircle(centerX, centerY, 540);
@@ -119,8 +124,9 @@ export default class Result extends Phaser.Scene {
     // NEW HIGH SCORE banner if applicable
     if (isNewHighScore) {
       this.createHighScoreBanner(centerX, centerY);
-      // Save new high score
+      // Save new high score and update panel
       this.game.registry.set("highScore", this.gameResult.score);
+      this.infoPanel?.updateHighScore();
     }
 
     // Enhanced celebration effect
@@ -192,7 +198,7 @@ export default class Result extends Phaser.Scene {
     const quantity = isNewHighScore ? 5 : 3;
     const frequency = isNewHighScore ? 30 : 50;
 
-    this.confettiEmitter = this.add.particles(CANVAS.WIDTH / 2, -50, "confetti", {
+    this.confettiEmitter = this.add.particles(ARENA.CENTER_X, -50, "confetti", {
       x: { min: -CANVAS.WIDTH / 2, max: CANVAS.WIDTH / 2 },
       speed: { min: 100, max: 300 },
       angle: { min: 80, max: 100 },
@@ -275,6 +281,8 @@ export default class Result extends Phaser.Scene {
     this.autoDismissTimer?.remove();
     this.autoDismissTimer = undefined;
     this.input.keyboard?.off("keydown-SPACE", this.returnToLobby, this);
+    this.infoPanel?.destroy();
+    this.infoPanel = undefined;
     this.backdrop?.destroy();
     this.backdrop = undefined;
 

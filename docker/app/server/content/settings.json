@@ -28,6 +28,8 @@
     },
     "inventoryPrizeTextureKey": "secondary-prize"
   },
+  "giveawayThreshold": 245,
+  "gameDurationMs": 30000,
   "timezone": "Europe/Zurich",
   "statusLine": {
     "type": "command",

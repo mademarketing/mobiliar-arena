@@ -13,10 +13,15 @@ export const CANVAS = {
 
 // Arena Configuration
 export const ARENA = {
-  CENTER_X: 960, // CANVAS.WIDTH / 2
+  CENTER_X: 1230, // Centered in right portion (540 + (1920-540)/2)
   CENTER_Y: 540, // CANVAS.HEIGHT / 2
-  RADIUS: 450, // Main play area radius
+  RADIUS: 520, // Main play area radius
   BORDER_WIDTH: 10,
+} as const;
+
+// Layout Configuration (second screen split)
+export const LAYOUT = {
+  PANEL_WIDTH: 540,
 } as const;
 
 // Player Configuration
@@ -147,6 +152,7 @@ export const EFFECTS = {
 // Default export
 const GameConstants = {
   CANVAS,
+  LAYOUT,
   ARENA,
   PLAYER,
   PADDLE,

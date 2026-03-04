@@ -10,7 +10,6 @@
 import Phaser from "phaser";
 import SceneKeys from "../consts/SceneKeys";
 import {
-  CANVAS,
   ARENA,
   PLAYER,
   PADDLE,
@@ -27,6 +26,7 @@ import {
   getPaddleArcLength,
 } from "../utils/CircularPhysics";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
+import InfoPanel from "../utils/InfoPanel";
 import GamePlugin from "../plugins/GamePlugin";
 
 interface PlayerSlot {
@@ -47,6 +47,7 @@ interface PlayerKeys {
 
 export default class Lobby extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
+  private infoPanel?: InfoPanel;
   private arenaGraphics?: Phaser.GameObjects.Graphics;
   private playerSlots: PlayerSlot[] = [];
 
@@ -76,6 +77,9 @@ export default class Lobby extends Phaser.Scene {
 
     // Animated backdrop
     this.backdrop = new AnimatedBackdrop(this).create();
+
+    // Info panel (left side)
+    this.infoPanel = new InfoPanel(this);
 
     // Draw arena outline
     this.drawArena();
@@ -119,16 +123,17 @@ export default class Lobby extends Phaser.Scene {
       const graphics = this.add.graphics();
       graphics.setDepth(DEPTH.UI_ELEMENTS);
 
-      // Key hint text positioned outside the arena (dev reference only)
+      // Key hint text (hidden — only used internally by drawSlot)
       const textPos = polarToCartesian(centerAngle, ARENA.RADIUS + 80);
       const text = this.add
-        .text(textPos.x, textPos.y, PLAYER_KEY_HINTS[i] ?? `P${i + 1}`, {
+        .text(textPos.x, textPos.y, "", {
           fontFamily: "MuseoSansBold, sans-serif",
           fontSize: "22px",
           color: "#444444",
         })
         .setOrigin(0.5)
-        .setDepth(DEPTH.UI_ELEMENTS + 2);
+        .setDepth(DEPTH.UI_ELEMENTS + 2)
+        .setVisible(false);
 
       const slot: PlayerSlot = {
         index: i,
@@ -276,7 +281,7 @@ export default class Lobby extends Phaser.Scene {
    * Create UI text elements
    */
   private createUI(): void {
-    const centerX = CANVAS.WIDTH / 2;
+    const centerX = ARENA.CENTER_X;
 
     // Instructions
     this.instructionText = this.add
@@ -557,6 +562,8 @@ export default class Lobby extends Phaser.Scene {
     this.playerSlots = [];
     this.playerKeys = [];
 
+    this.infoPanel?.destroy();
+    this.infoPanel = undefined;
     this.backdrop?.destroy();
     this.backdrop = undefined;
     this.arenaGraphics?.destroy();

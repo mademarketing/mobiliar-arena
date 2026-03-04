@@ -7,7 +7,6 @@
 import Phaser from "phaser";
 import SceneKeys from "../consts/SceneKeys";
 import {
-  CANVAS,
   ARENA,
   GAME,
   PLAYER,
@@ -17,10 +16,12 @@ import {
 } from "../consts/GameConstants";
 import GameArena from "../managers/GameArena";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
+import InfoPanel from "../utils/InfoPanel";
 import { polarToCartesian } from "../utils/CircularPhysics";
 
 export default class Countdown extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
+  private infoPanel?: InfoPanel;
   private gameArena?: GameArena;
   private players: number[] = [];
   private playerKeys: { left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key }[] = [];
@@ -58,22 +59,11 @@ export default class Countdown extends Phaser.Scene {
     // Animated backdrop
     this.backdrop = new AnimatedBackdrop(this).create();
 
+    // Info panel (left side)
+    this.infoPanel = new InfoPanel(this);
+
     // Initialize game arena (creates paddles)
     this.gameArena = new GameArena(this, this.players);
-
-    // Key hint labels outside the arena for each active player
-    for (const playerIndex of this.players) {
-      const angle = (playerIndex * 360) / PLAYER.MAX_PLAYERS;
-      const pos = polarToCartesian(angle, ARENA.RADIUS + 80);
-      this.add
-        .text(pos.x, pos.y, PLAYER_KEY_HINTS[playerIndex] ?? `P${playerIndex + 1}`, {
-          fontFamily: "MuseoSansBold, sans-serif",
-          fontSize: "22px",
-          color: "#444444",
-        })
-        .setOrigin(0.5)
-        .setDepth(DEPTH.UI_ELEMENTS);
-    }
 
     // Fade in
     this.cameras.main.fadeIn(300, 0, 0, 0);
@@ -86,8 +76,8 @@ export default class Countdown extends Phaser.Scene {
    * Show explanation screens before countdown
    */
   private showIntroSequence(): void {
-    const centerX = CANVAS.WIDTH / 2;
-    const centerY = CANVAS.HEIGHT / 2;
+    const centerX = ARENA.CENTER_X;
+    const centerY = ARENA.CENTER_Y;
 
     // Red circle (1080px diameter = 540px radius), behind paddles
     this.introCircle = this.add.graphics();
@@ -136,8 +126,8 @@ export default class Countdown extends Phaser.Scene {
    * Create countdown UI
    */
   private createCountdownUI(): void {
-    const centerX = CANVAS.WIDTH / 2;
-    const centerY = CANVAS.HEIGHT / 2;
+    const centerX = ARENA.CENTER_X;
+    const centerY = ARENA.CENTER_Y;
 
     // Large countdown number
     this.countdownText = this.add
@@ -265,6 +255,8 @@ export default class Countdown extends Phaser.Scene {
     this.gameArena?.destroy();
     this.gameArena = undefined;
 
+    this.infoPanel?.destroy();
+    this.infoPanel = undefined;
     this.backdrop?.destroy();
     this.backdrop = undefined;
 

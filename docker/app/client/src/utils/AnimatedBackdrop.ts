@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { CANVAS, DEPTH } from "../consts/GameConstants";
+import { CANVAS, ARENA, DEPTH } from "../consts/GameConstants";
 import TextureKeys from "../consts/TextureKeys";
 import ThemeManager from "../managers/ThemeManager";
 
@@ -61,13 +61,17 @@ export default class AnimatedBackdrop {
   create(): this {
     // Load the static background image
     this.backgroundSprite = this.scene.add.image(
-      CANVAS.WIDTH / 2,
-      CANVAS.HEIGHT / 2,
+      ARENA.CENTER_X,
+      ARENA.CENTER_Y + 4,
       this.config.backgroundTexture
     );
 
-    // Scale to fit canvas if dimensions don't match
-    this.backgroundSprite.setDisplaySize(CANVAS.WIDTH, CANVAS.HEIGHT);
+    // Scale to cover the arena circle while maintaining aspect ratio
+    const diameter = ARENA.RADIUS * 2 + 40;
+    const imgW = this.backgroundSprite.width;
+    const imgH = this.backgroundSprite.height;
+    const scale = Math.max(diameter / imgW, diameter / imgH);
+    this.backgroundSprite.setScale(scale);
 
     this.container.add(this.backgroundSprite);
 

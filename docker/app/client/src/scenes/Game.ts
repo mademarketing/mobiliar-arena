@@ -11,7 +11,6 @@
 import Phaser from "phaser";
 import SceneKeys from "../consts/SceneKeys";
 import {
-  CANVAS,
   ARENA,
   GAME,
   PLAYER,
@@ -22,10 +21,12 @@ import {
 import GamePlugin from "../plugins/GamePlugin";
 import GameArena from "../managers/GameArena";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
+import InfoPanel from "../utils/InfoPanel";
 import { polarToCartesian } from "../utils/CircularPhysics";
 
 export default class Game extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
+  private infoPanel?: InfoPanel;
   private gameArena?: GameArena;
   private players: number[] = [];
   private playerKeys: { left: Phaser.Input.Keyboard.Key; right: Phaser.Input.Keyboard.Key }[] = [];
@@ -56,8 +57,12 @@ export default class Game extends Phaser.Scene {
     // Get GamePlugin reference for hardware button state
     this.gamePlugin = this.plugins.get("GamePlugin") as GamePlugin;
 
+    // Use gameDurationMs from settings if available
+    const settings = this.game.registry.get("gameSettings") || {};
+    const gameDurationMs = settings.gameDurationMs ?? GAME.DURATION_MS;
+
     // Reset state
-    this.timeRemaining = GAME.DURATION_MS;
+    this.timeRemaining = gameDurationMs;
     this.isGameOver = false;
 
     // Setup input from shared key mapping
@@ -72,22 +77,11 @@ export default class Game extends Phaser.Scene {
     // Animated backdrop
     this.backdrop = new AnimatedBackdrop(this).create();
 
+    // Info panel (left side)
+    this.infoPanel = new InfoPanel(this);
+
     // Initialize game arena
     this.gameArena = new GameArena(this, this.players);
-
-    // Key hint labels outside the arena for each active player
-    for (const playerIndex of this.players) {
-      const angle = (playerIndex * 360) / PLAYER.MAX_PLAYERS;
-      const pos = polarToCartesian(angle, ARENA.RADIUS + 80);
-      this.add
-        .text(pos.x, pos.y, PLAYER_KEY_HINTS[playerIndex] ?? `P${playerIndex + 1}`, {
-          fontFamily: "MuseoSansBold, sans-serif",
-          fontSize: "22px",
-          color: "#444444",
-        })
-        .setOrigin(0.5)
-        .setDepth(DEPTH.UI_ELEMENTS);
-    }
 
     // Create UI
     this.createUI();
@@ -106,8 +100,8 @@ export default class Game extends Phaser.Scene {
    * Create game UI
    */
   private createUI(): void {
-    const centerX = CANVAS.WIDTH / 2;
-    const centerY = CANVAS.HEIGHT / 2;
+    const centerX = ARENA.CENTER_X;
+    const centerY = ARENA.CENTER_Y;
 
     // Timer centered
     this.timerText = this.add
@@ -346,6 +340,8 @@ export default class Game extends Phaser.Scene {
     this.gameArena = undefined;
 
     // Clean up UI
+    this.infoPanel?.destroy();
+    this.infoPanel = undefined;
     this.backdrop?.destroy();
     this.backdrop = undefined;
     this.timerText?.destroy();

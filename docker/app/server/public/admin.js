@@ -126,8 +126,55 @@ async function setTheme(theme) {
   }
 }
 
+// ========== Game Settings ==========
+
+async function loadGameSettings() {
+  try {
+    const response = await fetch('/api/admin/game-settings');
+    const result = await response.json();
+
+    if (result.success) {
+      document.getElementById('giveaway-threshold').value = result.data.giveawayThreshold;
+      document.getElementById('game-duration').value = Math.round(result.data.gameDurationMs / 1000);
+    }
+  } catch (error) {
+    showMessage('Error loading game settings', 'error');
+  }
+}
+
+async function saveGameSettings() {
+  const giveawayThreshold = parseInt(document.getElementById('giveaway-threshold').value, 10);
+  const gameDurationSeconds = parseInt(document.getElementById('game-duration').value, 10);
+
+  if (isNaN(giveawayThreshold) || isNaN(gameDurationSeconds)) {
+    showMessage('Please enter valid numbers', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/admin/game-settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        giveawayThreshold,
+        gameDurationMs: gameDurationSeconds * 1000,
+      }),
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      showMessage('Game settings saved', 'success');
+    } else {
+      showMessage('Failed to save: ' + result.error, 'error');
+    }
+  } catch (error) {
+    showMessage('Error saving game settings: ' + error.message, 'error');
+  }
+}
+
 // ========== Initialization ==========
 
 document.addEventListener('DOMContentLoaded', () => {
   loadTheme();
+  loadGameSettings();
 });

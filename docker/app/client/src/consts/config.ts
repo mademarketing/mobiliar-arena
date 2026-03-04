@@ -6,6 +6,7 @@ import WebfontLoaderPlugin from "phaser3-rex-plugins/plugins/webfontloader-plugi
 const config: Types.Core.GameConfig = {
   type: AUTO,
   parent: "game-container",
+  backgroundColor: "#ffffff",
   scale: {
     mode: Scale.FIT,
     autoCenter: Scale.CENTER_BOTH,

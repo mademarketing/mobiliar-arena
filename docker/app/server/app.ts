@@ -270,6 +270,56 @@ app.put("/api/admin/theme", (req, res) => {
   }
 });
 
+// Game settings API endpoints (giveaway threshold, game duration)
+app.get("/api/admin/game-settings", (req, res) => {
+  try {
+    const settings = settingsLoader.getAllSettings() as any;
+    res.json({
+      success: true,
+      data: {
+        giveawayThreshold: settings.giveawayThreshold ?? 245,
+        gameDurationMs: settings.gameDurationMs ?? 30000,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching game settings:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch game settings" });
+  }
+});
+
+app.put("/api/admin/game-settings", (req, res) => {
+  try {
+    const { giveawayThreshold, gameDurationMs } = req.body;
+    const fs = require("fs");
+    const rawSettings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+
+    if (giveawayThreshold !== undefined) {
+      rawSettings.giveawayThreshold = Number(giveawayThreshold);
+    }
+    if (gameDurationMs !== undefined) {
+      rawSettings.gameDurationMs = Number(gameDurationMs);
+    }
+
+    fs.writeFileSync(settingsPath, JSON.stringify(rawSettings, null, 2));
+    (settingsLoader as any).settings = rawSettings;
+
+    // Notify clients to reload
+    io.emit(GameEvents.Reload);
+
+    console.log(`Game settings updated: giveawayThreshold=${rawSettings.giveawayThreshold}, gameDurationMs=${rawSettings.gameDurationMs}`);
+    res.json({
+      success: true,
+      data: {
+        giveawayThreshold: rawSettings.giveawayThreshold,
+        gameDurationMs: rawSettings.gameDurationMs,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating game settings:", error);
+    res.status(500).json({ success: false, error: "Failed to update game settings" });
+  }
+});
+
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({

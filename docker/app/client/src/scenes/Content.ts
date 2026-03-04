@@ -7,33 +7,39 @@
 
 import Phaser from "phaser";
 import SceneKeys from "../consts/SceneKeys";
-import { CANVAS } from "../consts/GameConstants";
+import { ARENA } from "../consts/GameConstants";
 import ThemeManager from "../managers/ThemeManager";
+import InfoPanel from "../utils/InfoPanel";
 
 export default class Content extends Phaser.Scene {
   private video?: Phaser.GameObjects.Video;
+  private infoPanel?: InfoPanel;
 
   constructor() {
     super(SceneKeys.Content);
   }
 
   create() {
-    const centerX = CANVAS.WIDTH / 2;
-    const centerY = CANVAS.HEIGHT / 2;
+    const centerX = ARENA.CENTER_X;
+    const centerY = ARENA.CENTER_Y;
     const themeManager = ThemeManager.getInstance();
 
-    // Create video centered on canvas
+    // Info panel (left side)
+    this.infoPanel = new InfoPanel(this);
+
+    // Create video centered on arena
     this.video = this.add.video(centerX, centerY, themeManager.getIntroVideoKey());
 
-    // Apply circular mask (960px diameter = 480px radius)
+    // Apply circular mask matching arena radius
     const maskShape = this.make.graphics({}, false);
     maskShape.fillStyle(0xffffff);
-    maskShape.fillCircle(centerX, centerY, 480);
+    maskShape.fillCircle(centerX, centerY, ARENA.RADIUS);
     this.video.setMask(maskShape.createGeometryMask());
 
     // Set size once the video has dimensions, then play looping
+    const videoSize = ARENA.RADIUS * 2 + 40;
     this.video.once("playing", () => {
-      this.video?.setDisplaySize(1000, 1000);
+      this.video?.setDisplaySize(videoSize, videoSize);
     });
     this.video.play(true);
 
@@ -52,5 +58,7 @@ export default class Content extends Phaser.Scene {
       this.video = undefined;
     }
     this.input.keyboard?.off("keydown-ENTER", this.goToLobby, this);
+    this.infoPanel?.destroy();
+    this.infoPanel = undefined;
   }
 }

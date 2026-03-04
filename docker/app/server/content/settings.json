@@ -28,8 +28,8 @@
     },
     "inventoryPrizeTextureKey": "secondary-prize"
   },
-  "highScore": 120,
-  "giveawayThreshold": 245,
+  "highScore": 270,
+  "giveawayThreshold": 500,
   "gameDurationMs": 30000,
   "timezone": "Europe/Zurich",
   "statusLine": {

@@ -65,8 +65,7 @@ export default class Countdown extends Phaser.Scene {
     // Initialize game arena (creates paddles)
     this.gameArena = new GameArena(this, this.players);
 
-    // Fade in
-    this.cameras.main.fadeIn(300, 0, 0, 0);
+    // No fade — instant transition
 
     // Show explanation sequence, then countdown
     this.showIntroSequence();

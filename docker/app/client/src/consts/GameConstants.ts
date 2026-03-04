@@ -32,7 +32,7 @@ export const PLAYER = {
     0xdedcd2, // Light Beige
     0x70c3d4, // Light Blue
     0x009d78, // Green
-    0xbe0078, // Magenta
+    0xf091be, // Pink
     0xffac2a, // Orange
     0xafcd5f, // Lime
   ] as const,

@@ -1,16 +1,16 @@
 /**
  * Result Scene - Team score display
  *
- * Shows final score, "Besser zusammen" message, and player count.
- * Includes enhanced confetti celebration and high score detection.
- * Auto-returns to Lobby after 10 seconds.
+ * Shows final score with emotions video backdrop, confetti celebration,
+ * and high score detection. Auto-returns to Lobby after configured time.
  */
 
 import Phaser from "phaser";
 import SceneKeys from "../consts/SceneKeys";
-import { CANVAS, ARENA, DEPTH, ANIMATION_DURATION, GAME, PLAYER } from "../consts/GameConstants";
+import { CANVAS, ARENA, DEPTH, GAME, PLAYER } from "../consts/GameConstants";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 import InfoPanel from "../utils/InfoPanel";
+import ThemeManager from "../managers/ThemeManager";
 
 interface GameResult {
   score: number;
@@ -18,16 +18,11 @@ interface GameResult {
   isTeamGame: boolean;
 }
 
-/**
- * Result Scene - Team score display
- *
- * Shows team score for arena game.
- * Auto-dismisses after configured time.
- */
 export default class Result extends Phaser.Scene {
   private autoDismissTimer?: Phaser.Time.TimerEvent;
   private backdrop?: AnimatedBackdrop;
   private infoPanel?: InfoPanel;
+  private emotionsVideo?: Phaser.GameObjects.Video;
   private confettiEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
   private circleMask?: Phaser.Display.Masks.GeometryMask;
 
@@ -62,13 +57,16 @@ export default class Result extends Phaser.Scene {
     const centerX = ARENA.CENTER_X;
     const centerY = ARENA.CENTER_Y;
 
-    // Create circular mask for confetti
+    // Create circular mask for video, confetti, and effects
     const maskGraphics = this.make.graphics({}, false);
     maskGraphics.fillStyle(0xffffff);
-    maskGraphics.fillCircle(centerX, centerY, 540);
+    maskGraphics.fillCircle(centerX, centerY, ARENA.RADIUS);
     this.circleMask = maskGraphics.createGeometryMask();
 
-    // Show team score display
+    // Play emotions video as backdrop over the arena
+    this.createEmotionsVideo(centerX, centerY);
+
+    // Show team score display (overlaid on video)
     this.createTeamScoreDisplay(centerX, centerY);
 
     // Auto-dismiss timer
@@ -78,9 +76,59 @@ export default class Result extends Phaser.Scene {
 
     // Keyboard shortcut: Space to skip
     this.input.keyboard?.on("keydown-SPACE", this.returnToLobby, this);
+  }
 
-    // Fade in
-    this.cameras.main.fadeIn(ANIMATION_DURATION.FADE_IN, 0, 0, 0);
+  /**
+   * Create and play emotions video with circular mask over the arena
+   */
+  private createEmotionsVideo(centerX: number, centerY: number): void {
+    const themeManager = ThemeManager.getInstance();
+    const videoKey = themeManager.getEmotionsVideoKey();
+
+    if (!this.cache.video.has(videoKey)) return;
+
+    this.emotionsVideo = this.add.video(centerX, centerY, videoKey);
+    this.emotionsVideo.setDepth(DEPTH.ARENA + 2);
+
+    // Apply circular mask
+    if (this.circleMask) {
+      this.emotionsVideo.setMask(this.circleMask);
+    }
+
+    // Scale video to cover arena once it starts playing
+    const videoSize = ARENA.RADIUS * 2 + 40;
+    this.emotionsVideo.once("playing", () => {
+      if (!this.emotionsVideo) return;
+      const scaleW = videoSize / this.emotionsVideo.width;
+      const scaleH = videoSize / this.emotionsVideo.height;
+      this.emotionsVideo.setScale(Math.max(scaleW, scaleH));
+    });
+
+    // Fade in the video
+    this.emotionsVideo.setAlpha(0);
+    this.tweens.add({
+      targets: this.emotionsVideo,
+      alpha: 0.7,
+      duration: 800,
+      ease: "Sine.out",
+    });
+
+    this.emotionsVideo.play(false);
+
+    // Fade out when video ends
+    this.emotionsVideo.on("complete", () => {
+      if (this.emotionsVideo) {
+        this.tweens.add({
+          targets: this.emotionsVideo,
+          alpha: 0,
+          duration: 1500,
+          ease: "Sine.in",
+          onComplete: () => {
+            this.emotionsVideo?.stop();
+          },
+        });
+      }
+    });
   }
 
   /**
@@ -133,7 +181,6 @@ export default class Result extends Phaser.Scene {
     // Enhanced celebration effect
     this.createConfetti(isNewHighScore);
     this.addCelebrationEffect(centerX, centerY);
-
   }
 
   /**
@@ -294,6 +341,12 @@ export default class Result extends Phaser.Scene {
     this.infoPanel = undefined;
     this.backdrop?.destroy();
     this.backdrop = undefined;
+
+    if (this.emotionsVideo) {
+      this.emotionsVideo.stop();
+      this.emotionsVideo.destroy();
+      this.emotionsVideo = undefined;
+    }
 
     if (this.confettiEmitter) {
       this.confettiEmitter.stop();

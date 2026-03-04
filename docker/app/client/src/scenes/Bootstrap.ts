@@ -52,6 +52,6 @@ export default class Bootstrap extends Phaser.Scene {
     this.scene.stop(SceneKeys.Preload);
     console.log("Bootstrap: Preload finished");
 
-    this.scene.start(SceneKeys.Lobby);
+    this.scene.start(SceneKeys.Content);
   }
 }

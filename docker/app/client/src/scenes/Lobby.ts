@@ -93,8 +93,7 @@ export default class Lobby extends Phaser.Scene {
     // Setup input
     this.setupInput();
 
-    // Fade in
-    this.cameras.main.fadeIn(ANIMATION_DURATION.FADE_IN, 0, 0, 0);
+    // No fade — instant transition to avoid black flash
   }
 
   /**

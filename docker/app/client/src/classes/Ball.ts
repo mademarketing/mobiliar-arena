@@ -266,10 +266,13 @@ export default class Ball {
     const t = Math.min(polar.radius / ARENA_RADIUS, 1);
     const depthScale = EFFECTS.BALL_DEPTH_SCALE_MAX - (EFFECTS.BALL_DEPTH_SCALE_MAX - EFFECTS.BALL_DEPTH_SCALE_MIN) * t;
 
-    // Pulsating scale when on fire
+    // Pulsating scale when warming up or on fire
     let fireScale = 1;
     if (this.isOnFire) {
       fireScale = 1 + 0.08 * Math.sin(time * 0.008);
+    } else if (this._hitCount >= 2) {
+      const warmth = (this._hitCount - 1) / (EFFECTS.FIRE_HIT_THRESHOLD - 1); // 0.33 at 2 hits, 0.66 at 3 hits
+      fireScale = 1 + 0.04 * warmth * Math.sin(time * 0.006);
     }
     this._sprite.setScale(this._baseScale * depthScale * fireScale);
 
@@ -321,13 +324,20 @@ export default class Ball {
       this._trailGraphics.fillCircle(pos.x, pos.y, baseRadius * trailDepthScale);
     }
 
-    // Draw glow around ball when on fire
+    // Draw glow around ball when warming up (1 hit from fire) or on fire
     if (onFire) {
       const glowAlpha = 0.25 + 0.15 * Math.sin(Date.now() * 0.006);
       this._glowGraphics.fillStyle(0xff6600, glowAlpha);
       this._glowGraphics.fillCircle(this._sprite.x, this._sprite.y, BALL.RADIUS * 2.2);
       this._glowGraphics.fillStyle(0xff4500, glowAlpha * 0.5);
       this._glowGraphics.fillCircle(this._sprite.x, this._sprite.y, BALL.RADIUS * 3);
+    } else if (this._hitCount >= 2) {
+      // Warming glow that intensifies with each hit
+      const warmth = (this._hitCount - 1) / (EFFECTS.FIRE_HIT_THRESHOLD - 1); // 0.33 at 2, 0.66 at 3
+      const warmAlpha = (0.08 + 0.12 * warmth) + 0.06 * warmth * Math.sin(Date.now() * 0.005);
+      const glowSize = BALL.RADIUS * (1.4 + 0.4 * warmth);
+      this._glowGraphics.fillStyle(0xffac2a, warmAlpha);
+      this._glowGraphics.fillCircle(this._sprite.x, this._sprite.y, glowSize);
     }
   }
 

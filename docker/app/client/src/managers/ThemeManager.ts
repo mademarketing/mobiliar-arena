@@ -64,6 +64,13 @@ export default class ThemeManager {
   }
 
   /**
+   * Get the video key for the current theme's emotions video
+   */
+  getEmotionsVideoKey(): string {
+    return `theme-${this.currentTheme}-emotions`;
+  }
+
+  /**
    * Load theme assets into the scene
    * Call this in the Preload scene's preload() method
    */
@@ -83,6 +90,12 @@ export default class ThemeManager {
     scene.load.video(
       this.getIntroVideoKey(),
       `assets/themes/${theme}/intro.mp4`,
+      true
+    );
+
+    scene.load.video(
+      this.getEmotionsVideoKey(),
+      `assets/themes/${theme}/emotions.mp4`,
       true
     );
 

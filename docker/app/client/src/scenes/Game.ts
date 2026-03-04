@@ -92,8 +92,7 @@ export default class Game extends Phaser.Scene {
     // Start game
     this.startGame();
 
-    // Fade in
-    this.cameras.main.fadeIn(300, 0, 0, 0);
+    // No fade — instant transition
   }
 
   /**
@@ -189,8 +188,15 @@ export default class Game extends Phaser.Scene {
     const timeStr = this.formatTime(this.timeRemaining);
     this.timerText?.setText(timeStr);
 
-    // Flash timer when low
+    // Final burst: spawn a ball every second in the last 10 seconds
     if (this.timeRemaining <= 10000 && this.timeRemaining > 0) {
+      const prevSecond = Math.ceil((this.timeRemaining + 100) / 1000);
+      const currSecond = Math.ceil(this.timeRemaining / 1000);
+      if (currSecond < prevSecond) {
+        this.gameArena?.spawnBall();
+      }
+
+      // Flash timer when low
       const color = this.timeRemaining % 1000 < 500 ? "#ff6b6b" : "#ffffff";
       this.timerText?.setColor(color);
     }

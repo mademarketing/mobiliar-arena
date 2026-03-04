@@ -126,6 +126,69 @@ async function setTheme(theme) {
   }
 }
 
+// ========== Language Management ==========
+
+const LANGUAGE_LABELS = { de: 'Deutsch', fr: 'Français' };
+let currentLanguage = '';
+
+async function loadLanguage() {
+  try {
+    const response = await fetch('/api/admin/language');
+    const result = await response.json();
+
+    if (result.success) {
+      currentLanguage = result.data.active;
+      renderLanguageGrid(result.data.active);
+    }
+  } catch (error) {
+    showMessage('Error loading language', 'error');
+  }
+}
+
+function renderLanguageGrid(active) {
+  const grid = document.getElementById('language-grid');
+  grid.innerHTML = ['de', 'fr'].map(lang => {
+    const isActive = lang === active;
+    const label = LANGUAGE_LABELS[lang];
+    const activeClasses = isActive
+      ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-300'
+      : 'border-gray-200 hover:border-gray-400 cursor-pointer';
+
+    return `
+      <button
+        onclick="setLanguage('${lang}')"
+        class="p-4 rounded-lg border-2 text-center transition-all ${activeClasses}"
+        ${isActive ? 'disabled' : ''}
+      >
+        <div class="text-lg font-semibold ${isActive ? 'text-blue-700' : 'text-gray-800'}">${label}</div>
+        ${isActive ? '<div class="text-xs text-blue-500 mt-1">Active</div>' : ''}
+      </button>
+    `;
+  }).join('');
+}
+
+async function setLanguage(language) {
+  if (language === currentLanguage) return;
+
+  try {
+    const response = await fetch('/api/admin/language', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language }),
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      showMessage(`Language changed to ${LANGUAGE_LABELS[language]}`, 'success');
+      loadLanguage();
+    } else {
+      showMessage('Failed to change language: ' + result.error, 'error');
+    }
+  } catch (error) {
+    showMessage('Error changing language: ' + error.message, 'error');
+  }
+}
+
 // ========== Game Settings ==========
 
 async function loadGameSettings() {
@@ -210,6 +273,7 @@ async function resetHighScore() {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadTheme();
+  loadLanguage();
   loadGameSettings();
   loadHighScore();
 });

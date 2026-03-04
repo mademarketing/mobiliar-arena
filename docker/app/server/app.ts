@@ -270,6 +270,48 @@ app.put("/api/admin/theme", (req, res) => {
   }
 });
 
+// Language API endpoints
+app.get("/api/admin/language", (req, res) => {
+  try {
+    const settings = settingsLoader.getAllSettings() as any;
+    res.json({
+      success: true,
+      data: { active: settings.language || "de" },
+    });
+  } catch (error) {
+    console.error("Error fetching language:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch language" });
+  }
+});
+
+app.put("/api/admin/language", (req, res) => {
+  try {
+    const { language } = req.body;
+    const valid = ["de", "fr"];
+
+    if (!language || !valid.includes(language)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid language. Must be one of: ${valid.join(", ")}`,
+      });
+    }
+
+    const fs = require("fs");
+    const rawSettings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    rawSettings.language = language;
+    fs.writeFileSync(settingsPath, JSON.stringify(rawSettings, null, 2));
+    (settingsLoader as any).settings = rawSettings;
+
+    io.emit(GameEvents.Reload);
+
+    console.log(`Language changed to: ${language}`);
+    res.json({ success: true, data: { active: language } });
+  } catch (error) {
+    console.error("Error updating language:", error);
+    res.status(500).json({ success: false, error: "Failed to update language" });
+  }
+});
+
 // High score API endpoints
 app.get("/api/highscore", (req, res) => {
   try {

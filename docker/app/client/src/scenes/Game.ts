@@ -23,6 +23,7 @@ import GameArena from "../managers/GameArena";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 import InfoPanel from "../utils/InfoPanel";
 import { polarToCartesian } from "../utils/CircularPhysics";
+import { t } from "../utils/translations";
 
 export default class Game extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
@@ -320,7 +321,7 @@ export default class Game extends Phaser.Scene {
 
     // Update combo
     if (state.combo > 1) {
-      this.comboText?.setText(`${state.combo}x COMBO!`);
+      this.comboText?.setText(t("game.comboHud", { n: state.combo }));
       this.comboText?.setAlpha(1);
     } else {
       this.comboText?.setAlpha(0);

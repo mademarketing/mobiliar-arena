@@ -11,6 +11,7 @@ import { CANVAS, ARENA, DEPTH, GAME, PLAYER } from "../consts/GameConstants";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 import InfoPanel from "../utils/InfoPanel";
 import ThemeManager from "../managers/ThemeManager";
+import { t } from "../utils/translations";
 
 interface GameStats {
   maxBallsInPlay: number;
@@ -232,30 +233,33 @@ export default class Result extends Phaser.Scene {
     bonusRally: number,
     bonusFire: number,
   ): void {
-    const bonusLines: { label: string; value: number }[] = [];
+    const bonusLines: { label: string; value: number; type: "balls" | "rally" | "fire" }[] = [];
 
     if (bonusMaxBalls > 0) {
-      bonusLines.push({ label: `Max. Bälle: ${stats.maxBallsInPlay}`, value: bonusMaxBalls });
+      bonusLines.push({ label: t("result.maxBalls", { n: stats.maxBallsInPlay }), value: bonusMaxBalls, type: "balls" });
     }
     if (bonusRally > 0) {
-      bonusLines.push({ label: `Längster Rally: ${stats.longestRally}`, value: bonusRally });
+      bonusLines.push({ label: t("result.longestRally", { n: stats.longestRally }), value: bonusRally, type: "rally" });
     }
     if (bonusFire > 0) {
-      bonusLines.push({ label: `Doppelpunkte: ${stats.fireBallCount}`, value: bonusFire });
+      bonusLines.push({ label: t("result.onFire", { n: stats.fireBallCount }), value: bonusFire, type: "fire" });
     }
 
     if (bonusLines.length === 0) return;
 
     let runningScore = totalScore - bonusMaxBalls - bonusRally - bonusFire;
-    const lineHeight = 44;
+    const lineHeight = 59;
     const panelPadding = 16;
-    const panelHeight = bonusLines.length * lineHeight + panelPadding * 2;
-    const panelWidth = 420;
+    const iconWidth = 60;
+    const panelHeight = bonusLines.length * lineHeight + panelPadding * 2 - 5;
+    const panelWidth = 480;
     const startY = centerY + 130;
+    const panelCenterX = centerX + 10;
+    const panelLeft = panelCenterX - panelWidth / 2;
 
     // White background panel behind bonus lines
     const panelBg = this.add.rectangle(
-      centerX, startY + (bonusLines.length - 1) * lineHeight / 2,
+      panelCenterX, startY + (bonusLines.length - 1) * lineHeight / 2,
       panelWidth, panelHeight, 0xffffff, 0.85
     )
       .setOrigin(0.5)
@@ -274,9 +278,22 @@ export default class Result extends Phaser.Scene {
       const y = startY + i * lineHeight;
 
       this.time.delayedCall(delay, () => {
-        // Label (left-aligned)
+        // Icon (left side of panel)
+        const iconElements = this.createBonusIcon(line.type, panelLeft + 14, y);
+        for (const el of iconElements) {
+          el.setAlpha(0);
+          this.tweens.add({
+            targets: el,
+            alpha: el.getData("targetAlpha") ?? 1,
+            y: el.y - 5,
+            duration: 300,
+            ease: "Back.out",
+          });
+        }
+
+        // Label (after icon)
         const labelText = this.add
-          .text(centerX - panelWidth / 2 + 24, y, line.label, {
+          .text(panelLeft + iconWidth + 20, y, line.label, {
             fontFamily: "MuseoSansBold, sans-serif",
             fontSize: "26px",
             color: "#333333",
@@ -287,7 +304,7 @@ export default class Result extends Phaser.Scene {
 
         // Points value (right-aligned, red)
         const pointsText = this.add
-          .text(centerX + panelWidth / 2 - 24, y, `+${line.value}`, {
+          .text(panelCenterX + panelWidth / 2 - 24, y, `+${line.value}`, {
             fontFamily: "MuseoSansBold, sans-serif",
             fontSize: "26px",
             color: "#da2323",
@@ -323,11 +340,79 @@ export default class Result extends Phaser.Scene {
   }
 
   /**
+   * Create bonus icon based on type using the ball texture
+   */
+  private createBonusIcon(type: "balls" | "rally" | "fire", x: number, y: number): (Phaser.GameObjects.Image | Phaser.GameObjects.Graphics)[] {
+    const themeManager = ThemeManager.getInstance();
+    const ballKey = themeManager.getBallKey();
+    const iconSize = 13; // 30% smaller than 18
+    const elements: (Phaser.GameObjects.Image | Phaser.GameObjects.Graphics)[] = [];
+
+    if (!this.textures.exists(ballKey)) return elements;
+
+    const texture = this.textures.get(ballKey);
+    const frame = texture.get();
+    const ballScale = (iconSize * 2) / Math.max(frame.width, frame.height);
+
+    if (type === "balls") {
+      // Three balls in a triangle: 2 on bottom, 1 on top
+      const cx = x + 24;
+      const spacing = 14;
+      // Top ball
+      const top = this.add.image(cx, y - spacing * 0.5, ballKey)
+        .setScale(ballScale).setDepth(DEPTH.UI_ELEMENTS).setOrigin(0.5);
+      // Bottom-left
+      const bl = this.add.image(cx - spacing * 0.55, y + spacing * 0.5, ballKey)
+        .setScale(ballScale).setDepth(DEPTH.UI_ELEMENTS).setOrigin(0.5);
+      // Bottom-right
+      const br = this.add.image(cx + spacing * 0.55, y + spacing * 0.5, ballKey)
+        .setScale(ballScale).setDepth(DEPTH.UI_ELEMENTS).setOrigin(0.5);
+      elements.push(top, bl, br);
+    } else if (type === "rally") {
+      // Ball with motion trail extending to the left
+      const trailGraphics = this.add.graphics()
+        .setDepth(DEPTH.UI_ELEMENTS - 1);
+      const ballCenterX = x + 38;
+      // Draw 4 fading trail circles going left
+      for (let i = 4; i >= 1; i--) {
+        const progress = i / 5;
+        const trailAlpha = 0.35 * (1 - progress);
+        const trailRadius = iconSize * (1 - progress * 0.4);
+        trailGraphics.fillStyle(0x888888, trailAlpha);
+        trailGraphics.fillCircle(ballCenterX - i * 10, y, trailRadius);
+      }
+      trailGraphics.setData("targetAlpha", 1);
+      elements.push(trailGraphics);
+
+      const ball = this.add.image(ballCenterX, y, ballKey)
+        .setScale(ballScale).setDepth(DEPTH.UI_ELEMENTS).setOrigin(0.5);
+      elements.push(ball);
+    } else if (type === "fire") {
+      // Ball with orange glow
+      const glowGraphics = this.add.graphics()
+        .setDepth(DEPTH.UI_ELEMENTS - 1);
+      const ballCenterX = x + 24;
+      glowGraphics.fillStyle(0xff6600, 0.3);
+      glowGraphics.fillCircle(ballCenterX, y, iconSize * 1.8);
+      glowGraphics.fillStyle(0xff4500, 0.15);
+      glowGraphics.fillCircle(ballCenterX, y, iconSize * 2.5);
+      glowGraphics.setData("targetAlpha", 1);
+      elements.push(glowGraphics);
+
+      const ball = this.add.image(ballCenterX, y, ballKey)
+        .setScale(ballScale).setDepth(DEPTH.UI_ELEMENTS).setOrigin(0.5);
+      elements.push(ball);
+    }
+
+    return elements;
+  }
+
+  /**
    * Create NEW HIGH SCORE banner
    */
   private createHighScoreBanner(centerX: number, _centerY: number): void {
     const banner = this.add
-      .text(centerX, 180, "NEW HIGH SCORE!", {
+      .text(centerX, 180, t("result.newHighScore"), {
         fontFamily: "MuseoSansBold, sans-serif",
         fontSize: "42px",
         color: "#ffffff",

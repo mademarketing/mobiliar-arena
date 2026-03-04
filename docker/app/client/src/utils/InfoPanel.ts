@@ -8,6 +8,7 @@
 import Phaser from "phaser";
 import { CANVAS, LAYOUT, DEPTH } from "../consts/GameConstants";
 import TextureKeys from "../consts/TextureKeys";
+import { t } from "./translations";
 
 const PANEL_DEPTH = DEPTH.UI_ELEMENTS + 20;
 const LEFT_PAD = 65;
@@ -46,7 +47,7 @@ export default class InfoPanel {
     // Highscore section — left-aligned, large text
     const highScore = scene.game.registry.get("highScore") || 0;
 
-    const hsLabel = scene.add.text(LEFT_PAD, 250, "Aktueller Highscore:", {
+    const hsLabel = scene.add.text(LEFT_PAD, 250, t("infoPanel.highScoreLabel"), {
       fontFamily: "MuseoSans, sans-serif",
       fontSize: "47px",
       color: "#333333",
@@ -55,7 +56,7 @@ export default class InfoPanel {
       .setDepth(PANEL_DEPTH + 1);
     this.elements.push(hsLabel);
 
-    this.highScoreText = scene.add.text(LEFT_PAD, 310, `${highScore} Punkte`, {
+    this.highScoreText = scene.add.text(LEFT_PAD, 310, t("infoPanel.score", { score: highScore }), {
       fontFamily: "MuseoSans, sans-serif",
       fontSize: "83px",
       color: "#333333",
@@ -68,7 +69,7 @@ export default class InfoPanel {
     const settings = scene.game.registry.get("gameSettings") || {};
     const threshold = settings.giveawayThreshold ?? 245;
 
-    const giveawayLabel = scene.add.text(LEFT_PAD, 540, "Hol Dir dein Give-Away", {
+    const giveawayLabel = scene.add.text(LEFT_PAD, 540, t("infoPanel.giveawayLabel"), {
       fontFamily: "MuseoSans, sans-serif",
       fontSize: "36px",
       color: "#333333",
@@ -77,7 +78,7 @@ export default class InfoPanel {
       .setDepth(PANEL_DEPTH + 1);
     this.elements.push(giveawayLabel);
 
-    const thresholdText = scene.add.text(LEFT_PAD, 590, `ab ${threshold} Punkten!`, {
+    const thresholdText = scene.add.text(LEFT_PAD, 590, t("infoPanel.giveawayThresh", { threshold }), {
       fontFamily: "MuseoSans, sans-serif",
       fontSize: "36px",
       color: "#333333",
@@ -105,7 +106,7 @@ export default class InfoPanel {
    */
   updateHighScore(): void {
     const highScore = this.scene.game.registry.get("highScore") || 0;
-    this.highScoreText?.setText(`${highScore} Punkte`);
+    this.highScoreText?.setText(t("infoPanel.score", { score: highScore }));
   }
 
   destroy(): void {

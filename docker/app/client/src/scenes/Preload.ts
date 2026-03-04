@@ -3,6 +3,7 @@ import GameEvents from "../../../shared/GameEvents";
 import SceneKeys from "../consts/SceneKeys";
 import TextureKeys from "../consts/TextureKeys";
 import ThemeManager from "../managers/ThemeManager";
+import { initTranslations } from "../utils/translations";
 
 /**
  * Preload Scene - Load all game assets here
@@ -43,6 +44,9 @@ export default class Preload extends Phaser.Scene {
     this.load.image(TextureKeys.Background, "assets/images/background.png");
     this.load.image(TextureKeys.MobiliarLogo, "assets/images/logomobilar.png");
     this.load.image(TextureKeys.Giveaway, "assets/images/giveaway.png");
+
+    // Initialize translations
+    initTranslations(this.settings?.language || "de");
 
     // Set theme from settings and load theme assets
     const themeManager = ThemeManager.getInstance();

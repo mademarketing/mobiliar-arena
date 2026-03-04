@@ -18,6 +18,7 @@ import GameArena from "../managers/GameArena";
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 import InfoPanel from "../utils/InfoPanel";
 import { polarToCartesian } from "../utils/CircularPhysics";
+import { t } from "../utils/translations";
 
 export default class Countdown extends Phaser.Scene {
   private backdrop?: AnimatedBackdrop;
@@ -92,7 +93,7 @@ export default class Countdown extends Phaser.Scene {
 
     // Intro text, above paddles
     this.introText = this.add
-      .text(centerX, centerY, "Ihr steuert das Paddle\nmit den Tasten\nnach links und rechts.", {
+      .text(centerX, centerY, t("countdown.intro1"), {
         fontFamily: "MuseoSansBold, sans-serif",
         fontSize: "48px",
         color: "#ffffff",
@@ -104,7 +105,7 @@ export default class Countdown extends Phaser.Scene {
 
     // Second message after 3s
     this.time.delayedCall(3000, () => {
-      this.introText?.setText("Ihr spielt zusammen.\nHaltet die Bälle im Spiel.");
+      this.introText?.setText(t("countdown.intro2"));
     });
 
     // Remove intro, start countdown after 6s
@@ -180,7 +181,7 @@ export default class Countdown extends Phaser.Scene {
       this.updateCountdownDisplay(String(this.countdownValue));
     } else if (this.countdownValue === 0) {
       // Show "GO!" (smaller to fit within circle)
-      this.updateCountdownDisplay("GO!", "#ffffff", "130px");
+      this.updateCountdownDisplay(t("countdown.go"), "#ffffff", "130px");
 
       // Wait a moment then start game
       this.time.delayedCall(500, () => {

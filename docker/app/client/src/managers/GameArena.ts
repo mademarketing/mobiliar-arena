@@ -28,6 +28,7 @@ import {
 } from "../utils/CircularPhysics";
 import { createCollisionEffect } from "../utils/CollisionEffect";
 import { createFloatingText, createMilestoneText } from "../utils/FloatingText";
+import { t } from "../utils/translations";
 
 export interface GameState {
   score: number;
@@ -205,7 +206,7 @@ export default class GameArena {
       this.scene,
       ball.x,
       ball.y - 60,
-      "ON FIRE!",
+      t("game.onFire"),
       "#ff6600"
     );
 
@@ -238,7 +239,7 @@ export default class GameArena {
       this.scene,
       ARENA.CENTER_X,
       ARENA.CENTER_Y - 100,
-      `COMBO x${combo}!`,
+      t("game.combo", { n: combo }),
       "#ffe66d"
     );
   }
@@ -264,7 +265,7 @@ export default class GameArena {
         this.scene,
         ARENA.CENTER_X,
         ARENA.CENTER_Y + 150,
-        "DIFFICULTY UP",
+        t("game.difficultyUp"),
         "#ff6b6b",
         "24px"
       );

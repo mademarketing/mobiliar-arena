@@ -28,6 +28,7 @@ import {
 import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 import InfoPanel from "../utils/InfoPanel";
 import GamePlugin from "../plugins/GamePlugin";
+import { t } from "../utils/translations";
 
 interface PlayerSlot {
   index: number;
@@ -284,7 +285,7 @@ export default class Lobby extends Phaser.Scene {
 
     // Instructions
     this.instructionText = this.add
-      .text(centerX, ARENA.CENTER_Y, "Drücke beide Tasten,\num dich anzumelden", {
+      .text(centerX, ARENA.CENTER_Y, t("lobby.instruction"), {
         fontFamily: "MuseoSans, sans-serif",
         fontSize: "25px",
         color: "#ffffff",
@@ -295,7 +296,7 @@ export default class Lobby extends Phaser.Scene {
 
     // Player count (top-left, matching Game scene style)
     this.playerCountText = this.add
-      .text(50, 50, "Waiting for players...", {
+      .text(50, 50, t("lobby.waitingPlayers"), {
         fontFamily: "MuseoSans, sans-serif",
         fontSize: "24px",
         color: "#888888",
@@ -304,7 +305,7 @@ export default class Lobby extends Phaser.Scene {
 
     // Start hint (below player count, hidden initially)
     this.startHintText = this.add
-      .text(50, 80, "Press ENTER to start", {
+      .text(50, 80, t("lobby.pressEnter"), {
         fontFamily: "MuseoSans, sans-serif",
         fontSize: "24px",
         color: "#4ecdc4",
@@ -429,16 +430,16 @@ export default class Lobby extends Phaser.Scene {
     const minPlayers = PLAYER.MIN_PLAYERS;
 
     if (playerCount === 0) {
-      this.playerCountText?.setText("Waiting for players...");
+      this.playerCountText?.setText(t("lobby.waitingPlayers"));
       this.startHintText?.setAlpha(0);
     } else if (playerCount < minPlayers) {
       this.playerCountText?.setText(
-        `${playerCount} player${playerCount > 1 ? "s" : ""} - Need ${minPlayers - playerCount} more`
+        t("lobby.needMore", { n: playerCount, need: minPlayers - playerCount })
       );
       this.startHintText?.setAlpha(0);
     } else {
       this.playerCountText?.setText(
-        `${playerCount} player${playerCount > 1 ? "s" : ""} ready!`
+        t("lobby.playersReady", { n: playerCount })
       );
       this.playerCountText?.setColor("#4ecdc4");
       this.startHintText?.setAlpha(1);

@@ -3,6 +3,7 @@
     "title": "Kiosk Game",
     "version": "1.0.0"
   },
+  "language": "de",
   "theme": "basketball",
   "availableThemes": [
     "basketball",
@@ -28,9 +29,9 @@
     },
     "inventoryPrizeTextureKey": "secondary-prize"
   },
-  "highScore": 1605,
+  "highScore": 2490,
   "giveawayThreshold": 500,
-  "gameDurationMs": 30000,
+  "gameDurationMs": 45000,
   "timezone": "Europe/Zurich",
   "statusLine": {
     "type": "command",

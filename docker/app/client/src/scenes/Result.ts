@@ -124,9 +124,10 @@ export default class Result extends Phaser.Scene {
     // NEW HIGH SCORE banner if applicable
     if (isNewHighScore) {
       this.createHighScoreBanner(centerX, centerY);
-      // Save new high score and update panel
+      // Save new high score locally and to server, update panel
       this.game.registry.set("highScore", this.gameResult.score);
       this.infoPanel?.updateHighScore();
+      this.saveHighScoreToServer(this.gameResult.score);
     }
 
     // Enhanced celebration effect
@@ -271,6 +272,14 @@ export default class Result extends Phaser.Scene {
         onComplete: () => particle.destroy(),
       });
     }
+  }
+
+  private saveHighScoreToServer(score: number): void {
+    fetch("/api/highscore", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ highScore: score }),
+    }).catch((err) => console.error("Failed to save high score:", err));
   }
 
   private returnToLobby = () => {

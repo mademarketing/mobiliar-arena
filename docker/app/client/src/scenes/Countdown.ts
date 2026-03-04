@@ -81,7 +81,7 @@ export default class Countdown extends Phaser.Scene {
 
     // Red circle (1080px diameter = 540px radius), behind paddles
     this.introCircle = this.add.graphics();
-    this.introCircle.fillStyle(0xc81e32);
+    this.introCircle.fillStyle(0xda2323);
     this.introCircle.fillCircle(centerX, centerY, 502);
     this.introCircle.setDepth(DEPTH.ARENA + 1);
 

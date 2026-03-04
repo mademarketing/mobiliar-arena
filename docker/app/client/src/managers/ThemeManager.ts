@@ -122,7 +122,7 @@ export default class ThemeManager {
       case "floorball":
         return [0x3296c8, 0x60c0ff, 0xffffff];
       case "corporate":
-        return [0xc81e32, 0xff4050, 0xffffff];
+        return [0xda2323, 0xff4050, 0xffffff];
       default:
         return [0xffffff, 0x4ecdc4, 0xffd700];
     }

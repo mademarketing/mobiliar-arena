@@ -63,6 +63,23 @@
       </button>
     </div>
 
+    <!-- High Score -->
+    <div class="mb-8 bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4">High Score</h2>
+      <div class="flex items-center gap-4">
+        <div class="bg-gray-50 p-4 rounded flex-1">
+          <div class="text-sm text-gray-600">Current High Score</div>
+          <div id="highscore-value" class="text-3xl font-bold text-red-600">-</div>
+        </div>
+        <button
+          onclick="resetHighScore()"
+          class="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition-colors"
+        >
+          Reset High Score
+        </button>
+      </div>
+    </div>
+
     <!-- Messages -->
     <div id="message-container" class="fixed top-4 right-4 z-50"></div>
   </div>

@@ -29,12 +29,12 @@ export const PLAYER = {
   MIN_PLAYERS: 2,
   MAX_PLAYERS: 6,
   COLORS: [
-    0xff6b6b, // Red
-    0x4ecdc4, // Teal
-    0xffe66d, // Yellow
-    0x95e1d3, // Mint
-    0xf38181, // Coral
-    0xaa96da, // Purple
+    0xdedcd2, // Light Beige
+    0x70c3d4, // Light Blue
+    0x009d78, // Green
+    0xbe0078, // Magenta
+    0xffac2a, // Orange
+    0xafcd5f, // Lime
   ] as const,
 } as const;
 

@@ -270,6 +270,37 @@ app.put("/api/admin/theme", (req, res) => {
   }
 });
 
+// High score API endpoints
+app.get("/api/highscore", (req, res) => {
+  try {
+    const settings = settingsLoader.getAllSettings() as any;
+    res.json({ highScore: settings.highScore ?? 0 });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch high score" });
+  }
+});
+
+app.put("/api/highscore", (req, res) => {
+  try {
+    const { highScore } = req.body;
+    if (typeof highScore !== "number" || highScore < 0) {
+      return res.status(400).json({ error: "Invalid high score value" });
+    }
+
+    const fs = require("fs");
+    const rawSettings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+    rawSettings.highScore = highScore;
+    fs.writeFileSync(settingsPath, JSON.stringify(rawSettings, null, 2));
+    (settingsLoader as any).settings = rawSettings;
+
+    console.log(`High score updated: ${highScore}`);
+    res.json({ success: true, highScore });
+  } catch (error) {
+    console.error("Error updating high score:", error);
+    res.status(500).json({ error: "Failed to update high score" });
+  }
+});
+
 // Game settings API endpoints (giveaway threshold, game duration)
 app.get("/api/admin/game-settings", (req, res) => {
   try {

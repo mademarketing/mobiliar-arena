@@ -98,6 +98,9 @@ export default class Preload extends Phaser.Scene {
     // Store settings in registry for other scenes to access
     this.game.registry.set("gameSettings", this.settings);
 
+    // Initialize high score from server settings
+    this.game.registry.set("highScore", this.settings?.highScore ?? 0);
+
     // Emit preload finished event
     this.game.events.emit(GameEvents.PreloadFinished);
   }

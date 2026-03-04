@@ -3,7 +3,7 @@
     "title": "Kiosk Game",
     "version": "1.0.0"
   },
-  "theme": "handball",
+  "theme": "basketball",
   "availableThemes": [
     "basketball",
     "handball",
@@ -28,6 +28,7 @@
     },
     "inventoryPrizeTextureKey": "secondary-prize"
   },
+  "highScore": 120,
   "giveawayThreshold": 245,
   "gameDurationMs": 30000,
   "timezone": "Europe/Zurich",

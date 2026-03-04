@@ -172,9 +172,44 @@ async function saveGameSettings() {
   }
 }
 
+// ========== High Score ==========
+
+async function loadHighScore() {
+  try {
+    const response = await fetch('/api/highscore');
+    const data = await response.json();
+    document.getElementById('highscore-value').textContent = data.highScore ?? 0;
+  } catch (error) {
+    showMessage('Error loading high score', 'error');
+  }
+}
+
+async function resetHighScore() {
+  if (!confirm('Reset high score to 0?')) return;
+
+  try {
+    const response = await fetch('/api/highscore', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ highScore: 0 }),
+    });
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById('highscore-value').textContent = '0';
+      showMessage('High score reset', 'success');
+    } else {
+      showMessage('Failed to reset: ' + data.error, 'error');
+    }
+  } catch (error) {
+    showMessage('Error resetting high score: ' + error.message, 'error');
+  }
+}
+
 // ========== Initialization ==========
 
 document.addEventListener('DOMContentLoaded', () => {
   loadTheme();
   loadGameSettings();
+  loadHighScore();
 });

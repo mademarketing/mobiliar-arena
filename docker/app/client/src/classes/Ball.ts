@@ -32,8 +32,12 @@ export default class Ball {
   private _rotation: number = 0;
   private _trailPositions: TrailPosition[] = [];
   private _trailGraphics: Phaser.GameObjects.Graphics;
+  private _glowGraphics: Phaser.GameObjects.Graphics;
   private _lastTrailUpdate: number = 0;
   private _trailUpdateInterval: number = 16; // ~60fps
+
+  // Fireball tracking
+  private _hitCount: number = 0;
 
   private static nextId = 0;
 
@@ -45,6 +49,11 @@ export default class Ball {
     // Create trail graphics (rendered behind ball)
     this._trailGraphics = scene.add.graphics();
     this._trailGraphics.setDepth(DEPTH.BALLS - 1);
+
+    // Create glow graphics (rendered behind ball, above trail)
+    this._glowGraphics = scene.add.graphics();
+    this._glowGraphics.setDepth(DEPTH.BALLS - 1);
+    this._glowGraphics.setBlendMode(Phaser.BlendModes.ADD);
 
     // Create physics sprite using theme ball texture
     const themeManager = ThemeManager.getInstance();
@@ -131,6 +140,12 @@ export default class Ball {
   get body(): Phaser.Physics.Arcade.Body | null {
     return this._sprite.body as Phaser.Physics.Arcade.Body | null;
   }
+  get isOnFire(): boolean {
+    return this._hitCount >= EFFECTS.FIRE_HIT_THRESHOLD;
+  }
+  get hitCount(): number {
+    return this._hitCount;
+  }
 
   /**
    * Spawn the ball at a random position near center with random velocity
@@ -154,6 +169,8 @@ export default class Ball {
     this._rotation = 0;
     this._trailPositions = [];
     this._trailGraphics.clear();
+    this._glowGraphics.clear();
+    this._hitCount = 0;
   }
 
   /**
@@ -191,6 +208,15 @@ export default class Ball {
   }
 
   /**
+   * Increment hit count and return whether fire mode just activated
+   */
+  incrementHitCount(): boolean {
+    const wasFire = this.isOnFire;
+    this._hitCount++;
+    return !wasFire && this.isOnFire;
+  }
+
+  /**
    * Increase ball speed (called after each bounce)
    */
   increaseSpeed(): void {
@@ -215,6 +241,7 @@ export default class Ball {
     this._sprite.setActive(false);
     this._sprite.setVelocity(0, 0);
     this._trailGraphics.clear();
+    this._glowGraphics.clear();
     this._trailPositions = [];
   }
 
@@ -238,7 +265,13 @@ export default class Ball {
     const polar = cartesianToPolar(this._sprite.x, this._sprite.y);
     const t = Math.min(polar.radius / ARENA_RADIUS, 1);
     const depthScale = EFFECTS.BALL_DEPTH_SCALE_MAX - (EFFECTS.BALL_DEPTH_SCALE_MAX - EFFECTS.BALL_DEPTH_SCALE_MIN) * t;
-    this._sprite.setScale(this._baseScale * depthScale);
+
+    // Pulsating scale when on fire
+    let fireScale = 1;
+    if (this.isOnFire) {
+      fireScale = 1 + 0.08 * Math.sin(time * 0.008);
+    }
+    this._sprite.setScale(this._baseScale * depthScale * fireScale);
 
     // Update trail positions (throttled)
     if (time - this._lastTrailUpdate > this._trailUpdateInterval) {
@@ -247,8 +280,9 @@ export default class Ball {
       // Add current position to trail
       this._trailPositions.unshift({ x: this._sprite.x, y: this._sprite.y });
 
-      // Keep only the last N positions
-      if (this._trailPositions.length > EFFECTS.BALL_TRAIL_LENGTH) {
+      // Keep only the last N positions (longer trail when on fire)
+      const maxTrail = this.isOnFire ? EFFECTS.FIRE_TRAIL_LENGTH : EFFECTS.BALL_TRAIL_LENGTH;
+      while (this._trailPositions.length > maxTrail) {
         this._trailPositions.pop();
       }
 
@@ -262,21 +296,38 @@ export default class Ball {
    */
   private drawTrail(): void {
     this._trailGraphics.clear();
+    this._glowGraphics.clear();
 
     if (this._trailPositions.length < 2) return;
 
+    const onFire = this.isOnFire;
+    const fireColors = [0xff4500, 0xff6600, 0xff8800, 0xffaa00, 0xffcc00];
+
     for (let i = 1; i < this._trailPositions.length; i++) {
       const pos = this._trailPositions[i];
-      const alpha = EFFECTS.BALL_TRAIL_ALPHA * (1 - i / this._trailPositions.length);
-      const baseRadius = BALL.RADIUS * (1 - i / this._trailPositions.length * 0.3);
+      const progress = i / this._trailPositions.length;
+      const trailAlpha = onFire
+        ? EFFECTS.FIRE_TRAIL_ALPHA * (1 - progress)
+        : EFFECTS.BALL_TRAIL_ALPHA * (1 - progress);
+      const baseRadius = BALL.RADIUS * (1 - progress * 0.3);
 
       // Apply depth scale to trail circles
       const polar = cartesianToPolar(pos.x, pos.y);
       const t = Math.min(polar.radius / ARENA_RADIUS, 1);
       const trailDepthScale = EFFECTS.BALL_DEPTH_SCALE_MAX - (EFFECTS.BALL_DEPTH_SCALE_MAX - EFFECTS.BALL_DEPTH_SCALE_MIN) * t;
 
-      this._trailGraphics.fillStyle(0xffffff, alpha);
+      const color = onFire ? fireColors[Math.min(i - 1, fireColors.length - 1)] : 0xffffff;
+      this._trailGraphics.fillStyle(color, trailAlpha);
       this._trailGraphics.fillCircle(pos.x, pos.y, baseRadius * trailDepthScale);
+    }
+
+    // Draw glow around ball when on fire
+    if (onFire) {
+      const glowAlpha = 0.25 + 0.15 * Math.sin(Date.now() * 0.006);
+      this._glowGraphics.fillStyle(0xff6600, glowAlpha);
+      this._glowGraphics.fillCircle(this._sprite.x, this._sprite.y, BALL.RADIUS * 2.2);
+      this._glowGraphics.fillStyle(0xff4500, glowAlpha * 0.5);
+      this._glowGraphics.fillCircle(this._sprite.x, this._sprite.y, BALL.RADIUS * 3);
     }
   }
 
@@ -287,5 +338,6 @@ export default class Ball {
     this._isActive = false;
     this._sprite.destroy();
     this._trailGraphics.destroy();
+    this._glowGraphics.destroy();
   }
 }

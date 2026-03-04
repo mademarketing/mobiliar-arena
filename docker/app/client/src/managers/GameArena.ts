@@ -142,12 +142,20 @@ export default class GameArena {
     ball.setVelocity(newVelocity.x, newVelocity.y);
     ball.increaseSpeed();
 
-    // Update score (simple points, no combo)
-    const points = SCORING.POINTS_PER_BOUNCE;
+    // Track hits for fireball
+    const justCaughtFire = ball.incrementHitCount();
+
+    // Update score — double points when on fire
+    const points = SCORING.POINTS_PER_BOUNCE * (ball.isOnFire ? EFFECTS.FIRE_SCORE_MULTIPLIER : 1);
     this._score += points;
 
-    // Visual effects (no combo)
-    this.createCollisionVisuals(ball, paddle, points);
+    // Visual effects
+    this.createCollisionVisuals(ball, paddle, points, ball.isOnFire);
+
+    // Fire activation burst
+    if (justCaughtFire) {
+      this.createFireActivationBurst(ball);
+    }
   }
 
   /**
@@ -156,26 +164,48 @@ export default class GameArena {
   private createCollisionVisuals(
     _ball: Ball,
     paddle: Paddle,
-    points: number
+    points: number,
+    isOnFire: boolean = false
   ): void {
     // Calculate hit position (on the paddle arc)
     const hitPos = polarToCartesian(paddle.angle, paddle.outerRadius - 10);
 
-    // Collision particle burst
-    createCollisionEffect(this.scene, hitPos.x, hitPos.y, paddle.color);
+    // Collision particle burst — fire colors when on fire
+    const particleColor = isOnFire ? 0xff6600 : paddle.color;
+    createCollisionEffect(this.scene, hitPos.x, hitPos.y, particleColor);
 
     // Paddle hit flash
     paddle.onHit();
 
-    // Score popup
+    // Score popup — orange when fire
+    const textColor = isOnFire ? "#ff6600" : "#4ecdc4";
     createFloatingText(
       this.scene,
       hitPos.x,
       hitPos.y - 20,
       `+${points}`,
-      "#4ecdc4",
+      textColor,
       "28px"
     );
+  }
+
+  /**
+   * Create a burst effect when a ball catches fire
+   */
+  private createFireActivationBurst(ball: Ball): void {
+    this.scene.cameras.main.flash(150, 255, 100, 0);
+
+    createMilestoneText(
+      this.scene,
+      ball.x,
+      ball.y - 60,
+      "ON FIRE!",
+      "#ff6600"
+    );
+
+    // Extra particle bursts in fire colors
+    createCollisionEffect(this.scene, ball.x, ball.y, 0xff4500);
+    createCollisionEffect(this.scene, ball.x, ball.y, 0xff8800);
   }
 
   /**

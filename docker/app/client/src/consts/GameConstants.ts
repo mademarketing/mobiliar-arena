@@ -48,13 +48,13 @@ export const BALL = {
   BASE_SPEED: 250, // Pixels per second (Arcade Physics)
   MAX_SPEED: 500,
   SPEED_INCREMENT: 25, // Speed increase per bounce
-  SPAWN_INTERVAL_MS: 5000, // New ball every 5 seconds
+  SPAWN_INTERVAL_MS: 3000, // New ball every 3 seconds (testing)
   MAX_BALLS: 5,
 } as const;
 
 // Game Configuration
 export const GAME = {
-  DURATION_MS: 60000, // 60 seconds
+  DURATION_MS: 30000, // 30 seconds (testing)
   COUNTDOWN_SECONDS: 3,
   JOIN_HOLD_MS: 1000, // Hold buttons for 1 second to join
   RESULT_DISPLAY_MS: 10000, // Show result for 10 seconds
@@ -138,6 +138,10 @@ export const EFFECTS = {
   COMBO_MILESTONES: [5, 10, 15, 20, 25, 30] as const,
   BALL_DEPTH_SCALE_MAX: 1.4, // Scale multiplier at arena center
   BALL_DEPTH_SCALE_MIN: 0.7, // Scale multiplier at arena edge
+  FIRE_HIT_THRESHOLD: 4,        // Hits before fire activates
+  FIRE_TRAIL_LENGTH: 8,         // Longer trail when on fire
+  FIRE_TRAIL_ALPHA: 0.6,        // Brighter trail
+  FIRE_SCORE_MULTIPLIER: 2,     // Double points
 } as const;
 
 // Default export

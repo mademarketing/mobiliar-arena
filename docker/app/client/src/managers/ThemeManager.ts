@@ -98,7 +98,7 @@ export default class ThemeManager {
       case "basketball":
         return 1.0;
       case "handball":
-        return 0.7;
+        return 0.3;
       case "volleyball":
         return 0.1;
       case "floorball":

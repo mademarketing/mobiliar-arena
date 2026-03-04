@@ -56,6 +56,11 @@ export default class GameArena {
   private _ballSpawnTimer?: Phaser.Time.TimerEvent;
   private _difficultyTimer?: Phaser.Time.TimerEvent;
 
+  // Stats tracking for end-of-game bonuses
+  private _maxBallsInPlay: number = 0;
+  private _longestRally: number = 0;
+  private _fireBallCount: number = 0;
+
   // Track recent collisions to prevent double-bouncing
   private recentCollisions: Map<number, number> = new Map();
   private readonly COLLISION_COOLDOWN = 100; // ms
@@ -145,8 +150,8 @@ export default class GameArena {
     // Track hits for fireball
     const justCaughtFire = ball.incrementHitCount();
 
-    // Update score — double points when on fire
-    const points = SCORING.POINTS_PER_BOUNCE * (ball.isOnFire ? EFFECTS.FIRE_SCORE_MULTIPLIER : 1);
+    // Score scales with hit count: 10, 20, 30... doubled when on fire
+    const points = SCORING.POINTS_PER_BOUNCE * ball.hitCount * (ball.isOnFire ? EFFECTS.FIRE_SCORE_MULTIPLIER : 1);
     this._score += points;
 
     // Visual effects
@@ -154,6 +159,7 @@ export default class GameArena {
 
     // Fire activation burst
     if (justCaughtFire) {
+      this._fireBallCount++;
       this.createFireActivationBurst(ball);
     }
   }
@@ -372,6 +378,12 @@ export default class GameArena {
 
     const now = Date.now();
 
+    // Track max concurrent balls
+    const currentBalls = this.ballCount;
+    if (currentBalls > this._maxBallsInPlay) {
+      this._maxBallsInPlay = currentBalls;
+    }
+
     // Check combo timeout
     if (now - this._lastBounceTime > GAME.COMBO_TIMEOUT_MS) {
       this._combo = 0;
@@ -407,6 +419,10 @@ export default class GameArena {
       if (ball.isActive) {
         const wentOut = ball.checkBounds();
         if (wentOut) {
+          // Track longest rally before resetting
+          if (ball.hitCount > this._longestRally) {
+            this._longestRally = ball.hitCount;
+          }
           // Ball went out of bounds - reset combo
           this._combo = 0;
         }
@@ -484,6 +500,23 @@ export default class GameArena {
       ballsInPlay: this.ballCount,
       timeRemaining: 0, // Managed by Game scene
       isGameOver: !this._isRunning,
+    };
+  }
+
+  /**
+   * Get end-of-game stats for bonus calculation
+   */
+  getStats() {
+    // Also check remaining active balls for longest rally
+    for (const ball of this.balls) {
+      if (ball.isActive && ball.hitCount > this._longestRally) {
+        this._longestRally = ball.hitCount;
+      }
+    }
+    return {
+      maxBallsInPlay: this._maxBallsInPlay,
+      longestRally: this._longestRally,
+      fireBallCount: this._fireBallCount,
     };
   }
 

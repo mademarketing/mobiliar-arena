@@ -12,11 +12,25 @@ import AnimatedBackdrop from "../utils/AnimatedBackdrop";
 import InfoPanel from "../utils/InfoPanel";
 import ThemeManager from "../managers/ThemeManager";
 
+interface GameStats {
+  maxBallsInPlay: number;
+  longestRally: number;
+  fireBallCount: number;
+}
+
 interface GameResult {
   score: number;
   playerCount: number;
   isTeamGame: boolean;
+  stats: GameStats;
 }
+
+// Bonus point values
+const BONUS = {
+  PER_MAX_BALL: 20,       // 20 pts per max concurrent ball
+  PER_RALLY_HIT: 5,       // 5 pts per hit in longest rally
+  PER_FIRE_BALL: 50,      // 50 pts per ball that caught fire
+} as const;
 
 export default class Result extends Phaser.Scene {
   private autoDismissTimer?: Phaser.Time.TimerEvent;
@@ -34,11 +48,12 @@ export default class Result extends Phaser.Scene {
     super(SceneKeys.Result);
   }
 
-  init(data: { score?: number; playerCount?: number; isTeamGame?: boolean }) {
+  init(data: { score?: number; playerCount?: number; isTeamGame?: boolean; stats?: GameStats }) {
     this.gameResult = {
       score: data.score ?? 0,
       playerCount: data.playerCount ?? 2,
       isTeamGame: true,
+      stats: data.stats ?? { maxBallsInPlay: 0, longestRally: 0, fireBallCount: 0 },
     };
   }
 
@@ -137,11 +152,23 @@ export default class Result extends Phaser.Scene {
   private createTeamScoreDisplay(centerX: number, centerY: number): void {
     if (!this.gameResult) return;
 
-    const isNewHighScore = this.gameResult.score > this.highScore;
+    const { stats } = this.gameResult;
+
+    // Calculate bonus points
+    const bonusMaxBalls = stats.maxBallsInPlay * BONUS.PER_MAX_BALL;
+    const bonusRally = stats.longestRally * BONUS.PER_RALLY_HIT;
+    const bonusFire = stats.fireBallCount * BONUS.PER_FIRE_BALL;
+    const totalBonus = bonusMaxBalls + bonusRally + bonusFire;
+    const totalScore = this.gameResult.score + totalBonus;
+
+    // Update the score with bonus included
+    this.gameResult.score = totalScore;
+
+    const isNewHighScore = totalScore > this.highScore;
 
     // Large score number with dramatic reveal
     const scoreText = this.add
-      .text(centerX, centerY, "0", {
+      .text(centerX, centerY - 40, "0", {
         fontFamily: "MuseoSansBold, sans-serif",
         fontSize: "180px",
         color: "#ffffff",
@@ -166,21 +193,133 @@ export default class Result extends Phaser.Scene {
       delay: 100,
     });
 
-    // Animate score counting up
-    this.animateScoreCount(scoreText, this.gameResult.score);
+    // Animate score counting up (base score first, then add bonuses)
+    this.animateScoreCount(scoreText, this.gameResult.score - totalBonus);
+
+    // Show bonus breakdown after base score finishes counting
+    const bonusDelay = Math.min(2000, (this.gameResult.score - totalBonus) * 10) + 500;
+    this.time.delayedCall(bonusDelay, () => {
+      this.showBonusBreakdown(centerX, centerY, scoreText, totalScore, stats, bonusMaxBalls, bonusRally, bonusFire);
+    });
 
     // NEW HIGH SCORE banner if applicable
     if (isNewHighScore) {
-      this.createHighScoreBanner(centerX, centerY);
+      // Delay high score banner until after bonuses are shown
+      this.time.delayedCall(bonusDelay + 2500, () => {
+        this.createHighScoreBanner(centerX, centerY);
+      });
       // Save new high score locally and to server, update panel
-      this.game.registry.set("highScore", this.gameResult.score);
+      this.game.registry.set("highScore", totalScore);
       this.infoPanel?.updateHighScore();
-      this.saveHighScoreToServer(this.gameResult.score);
+      this.saveHighScoreToServer(totalScore);
     }
 
     // Enhanced celebration effect
     this.createConfetti(isNewHighScore);
     this.addCelebrationEffect(centerX, centerY);
+  }
+
+  /**
+   * Show bonus point breakdown with animated additions
+   */
+  private showBonusBreakdown(
+    centerX: number,
+    centerY: number,
+    scoreText: Phaser.GameObjects.Text,
+    totalScore: number,
+    stats: GameStats,
+    bonusMaxBalls: number,
+    bonusRally: number,
+    bonusFire: number,
+  ): void {
+    const bonusLines: { label: string; value: number }[] = [];
+
+    if (bonusMaxBalls > 0) {
+      bonusLines.push({ label: `Max. Bälle: ${stats.maxBallsInPlay}`, value: bonusMaxBalls });
+    }
+    if (bonusRally > 0) {
+      bonusLines.push({ label: `Längster Rally: ${stats.longestRally}`, value: bonusRally });
+    }
+    if (bonusFire > 0) {
+      bonusLines.push({ label: `Doppelpunkte: ${stats.fireBallCount}`, value: bonusFire });
+    }
+
+    if (bonusLines.length === 0) return;
+
+    let runningScore = totalScore - bonusMaxBalls - bonusRally - bonusFire;
+    const lineHeight = 44;
+    const panelPadding = 16;
+    const panelHeight = bonusLines.length * lineHeight + panelPadding * 2;
+    const panelWidth = 420;
+    const startY = centerY + 130;
+
+    // White background panel behind bonus lines
+    const panelBg = this.add.rectangle(
+      centerX, startY + (bonusLines.length - 1) * lineHeight / 2,
+      panelWidth, panelHeight, 0xffffff, 0.85
+    )
+      .setOrigin(0.5)
+      .setDepth(DEPTH.UI_ELEMENTS - 1)
+      .setStrokeStyle(2, 0xe0e0e0)
+      .setAlpha(0);
+
+    this.tweens.add({
+      targets: panelBg,
+      alpha: 1,
+      duration: 300,
+    });
+
+    bonusLines.forEach((line, i) => {
+      const delay = i * 600;
+      const y = startY + i * lineHeight;
+
+      this.time.delayedCall(delay, () => {
+        // Label (left-aligned)
+        const labelText = this.add
+          .text(centerX - panelWidth / 2 + 24, y, line.label, {
+            fontFamily: "MuseoSansBold, sans-serif",
+            fontSize: "26px",
+            color: "#333333",
+          })
+          .setOrigin(0, 0.5)
+          .setDepth(DEPTH.UI_ELEMENTS)
+          .setAlpha(0);
+
+        // Points value (right-aligned, red)
+        const pointsText = this.add
+          .text(centerX + panelWidth / 2 - 24, y, `+${line.value}`, {
+            fontFamily: "MuseoSansBold, sans-serif",
+            fontSize: "26px",
+            color: "#da2323",
+          })
+          .setOrigin(1, 0.5)
+          .setDepth(DEPTH.UI_ELEMENTS)
+          .setAlpha(0);
+
+        for (const el of [labelText, pointsText]) {
+          this.tweens.add({
+            targets: el,
+            alpha: 1,
+            y: y - 5,
+            duration: 300,
+            ease: "Back.out",
+          });
+        }
+
+        // Animate score counting up to include this bonus
+        runningScore += line.value;
+        const newScore = runningScore;
+        this.tweens.addCounter({
+          from: newScore - line.value,
+          to: newScore,
+          duration: 400,
+          ease: "Cubic.out",
+          onUpdate: (tween) => {
+            scoreText.setText(String(Math.round(tween.getValue() ?? 0)));
+          },
+        });
+      });
+    });
   }
 
   /**

@@ -264,11 +264,12 @@ export default class Game extends Phaser.Scene {
     // Stop game arena
     this.gameArena?.stop();
 
-    // Get final score
+    // Get final score and stats
     const finalScore = this.gameArena?.score ?? 0;
     const playerCount = this.players.length;
+    const stats = this.gameArena?.getStats() ?? { maxBallsInPlay: 0, longestRally: 0, fireBallCount: 0 };
 
-    console.log(`Game Over! Score: ${finalScore}, Players: ${playerCount}`);
+    console.log(`Game Over! Score: ${finalScore}, Players: ${playerCount}`, stats);
 
     // Transition to Result screen
     this.time.delayedCall(500, () => {
@@ -276,6 +277,7 @@ export default class Game extends Phaser.Scene {
         score: finalScore,
         playerCount: playerCount,
         isTeamGame: true,
+        stats,
       });
     });
   }

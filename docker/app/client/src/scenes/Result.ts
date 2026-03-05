@@ -198,7 +198,7 @@ export default class Result extends Phaser.Scene {
     this.animateScoreCount(scoreText, this.gameResult.score - totalBonus);
 
     // Show bonus breakdown after base score finishes counting
-    const bonusDelay = Math.min(2000, (this.gameResult.score - totalBonus) * 10) + 500;
+    const bonusDelay = Math.min(2000, (this.gameResult.score - totalBonus) * 10) + 1500;
     this.time.delayedCall(bonusDelay, () => {
       this.showBonusBreakdown(centerX, centerY, scoreText, totalScore, stats, bonusMaxBalls, bonusRally, bonusFire);
     });
@@ -206,7 +206,7 @@ export default class Result extends Phaser.Scene {
     // NEW HIGH SCORE banner if applicable
     if (isNewHighScore) {
       // Delay high score banner until after bonuses are shown
-      this.time.delayedCall(bonusDelay + 2500, () => {
+      this.time.delayedCall(bonusDelay + 3500, () => {
         this.createHighScoreBanner(centerX, centerY);
       });
       // Save new high score locally and to server, update panel
@@ -274,7 +274,7 @@ export default class Result extends Phaser.Scene {
     });
 
     bonusLines.forEach((line, i) => {
-      const delay = i * 600;
+      const delay = i * 1000;
       const y = startY + i * lineHeight;
 
       this.time.delayedCall(delay, () => {

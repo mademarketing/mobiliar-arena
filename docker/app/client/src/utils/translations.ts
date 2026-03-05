@@ -24,7 +24,7 @@ const de: TranslationDict = {
 };
 
 const fr: TranslationDict = {
-  "lobby.instruction": "Appuie sur les deux boutons\npour t'inscrire",
+  "lobby.instruction": "Appuie sur les\ndeux boutons\npour t'inscrire",
   "lobby.waitingPlayers": "En attente de joueurs...",
   "lobby.needMore": "{n} joueurs – encore {need}",
   "lobby.playersReady": "{n} joueurs prêts!",

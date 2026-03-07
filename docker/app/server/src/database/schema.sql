@@ -82,3 +82,22 @@ CREATE TABLE qr_codes (
 );
 CREATE INDEX idx_qr_codes_prize_unused ON qr_codes(prize_id, is_used);
 CREATE INDEX idx_qr_codes_code ON qr_codes(code);
+
+-- Game log: Historical record of all game plays with scores and stats
+CREATE TABLE game_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp TEXT NOT NULL,
+  date TEXT NOT NULL,
+  player_count INTEGER NOT NULL,
+  score INTEGER NOT NULL,
+  base_score INTEGER NOT NULL,
+  bonus_score INTEGER NOT NULL,
+  max_balls_in_play INTEGER NOT NULL DEFAULT 0,
+  longest_rally INTEGER NOT NULL DEFAULT 0,
+  fire_ball_count INTEGER NOT NULL DEFAULT 0,
+  game_duration_ms INTEGER NOT NULL,
+  theme TEXT,
+  is_high_score INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX idx_game_log_date ON game_log(date);
+CREATE INDEX idx_game_log_timestamp ON game_log(timestamp);

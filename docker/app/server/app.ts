@@ -13,6 +13,7 @@ import { createHealthRoutes } from "./src/routes/health";
 // Printer utilities available if needed
 // import { printReceipt, printGameReceipt, ReceiptType } from "./src/utils/printer";
 import { tunnelProtection } from "./src/middleware/tunnelProtection";
+import { getSwissDate } from "./src/utils/timezone";
 import session = require("express-session");
 const path = require("path");
 
@@ -340,6 +341,40 @@ app.put("/api/highscore", (req, res) => {
   } catch (error) {
     console.error("Error updating high score:", error);
     res.status(500).json({ error: "Failed to update high score" });
+  }
+});
+
+// Game log API endpoint (fired by client after each game)
+app.post("/api/game-log", (req, res) => {
+  try {
+    const { playerCount, score, baseScore, bonusScore, stats, gameDurationMs, isHighScore } = req.body;
+
+    if (typeof playerCount !== "number" || typeof score !== "number") {
+      return res.status(400).json({ error: "playerCount and score are required" });
+    }
+
+    const now = new Date();
+    const settings = settingsLoader.getAllSettings() as any;
+
+    prizeDatabase.logGame({
+      timestamp: now.toISOString(),
+      date: getSwissDate(now),
+      playerCount,
+      score,
+      baseScore: baseScore ?? 0,
+      bonusScore: bonusScore ?? 0,
+      maxBallsInPlay: stats?.maxBallsInPlay ?? 0,
+      longestRally: stats?.longestRally ?? 0,
+      fireBallCount: stats?.fireBallCount ?? 0,
+      gameDurationMs: gameDurationMs ?? 30000,
+      theme: settings.theme ?? null,
+      isHighScore: isHighScore ?? false,
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error logging game:", error);
+    res.status(500).json({ error: "Failed to log game" });
   }
 });
 

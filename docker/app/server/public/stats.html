@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobiliar Arena - Play Statistics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <!-- Header -->
+    <div class="mb-6 flex justify-between items-start">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-1">Play Statistics</h1>
+        <p class="text-gray-600">Game performance data</p>
+      </div>
+      <a href="/admin.html" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors text-sm">
+        &larr; Admin
+      </a>
+    </div>
+
+    <!-- Date Picker -->
+    <div class="mb-6 bg-white rounded-lg shadow p-4 flex items-center gap-4">
+      <button onclick="prevDay()" class="bg-gray-200 text-gray-700 px-3 py-2 rounded hover:bg-gray-300 transition-colors">&larr;</button>
+      <input type="date" id="date-picker" class="border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-300 focus:border-blue-500" />
+      <button onclick="nextDay()" class="bg-gray-200 text-gray-700 px-3 py-2 rounded hover:bg-gray-300 transition-colors">&rarr;</button>
+      <button onclick="goToday()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm">Today</button>
+      <span id="date-label" class="text-gray-500 text-sm ml-2"></span>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-12 text-gray-500 hidden">Loading...</div>
+
+    <!-- No Data State -->
+    <div id="no-data" class="text-center py-12 text-gray-400 hidden">
+      <p class="text-xl mb-2">No games played on this date</p>
+      <p class="text-sm">Select a different date to view statistics</p>
+    </div>
+
+    <!-- Stats Content -->
+    <div id="stats-content" class="hidden">
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <div id="stat-games" class="text-3xl font-bold text-blue-600">0</div>
+          <div class="text-sm text-gray-500 mt-1">Games</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <div id="stat-players" class="text-3xl font-bold text-green-600">0</div>
+          <div class="text-sm text-gray-500 mt-1">Total Players</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <div id="stat-avg-score" class="text-3xl font-bold text-purple-600">0</div>
+          <div class="text-sm text-gray-500 mt-1">Avg Score</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <div id="stat-best" class="text-3xl font-bold text-red-600">0</div>
+          <div class="text-sm text-gray-500 mt-1">Best Score</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <div id="stat-avg-players" class="text-3xl font-bold text-orange-600">0</div>
+          <div class="text-sm text-gray-500 mt-1">Avg Players</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 text-center">
+          <div id="stat-low" class="text-3xl font-bold text-gray-600">0</div>
+          <div class="text-sm text-gray-500 mt-1">Low Score</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Games per Hour -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">Games per Hour</h2>
+          <canvas id="hourly-chart" height="250"></canvas>
+        </div>
+
+        <!-- Score Distribution -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4">Score Distribution</h2>
+          <canvas id="score-chart" height="250"></canvas>
+        </div>
+      </div>
+
+      <!-- Games Table -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Games (<span id="games-count">0</span>)</h2>
+        <div class="overflow-x-auto max-h-96 overflow-y-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 sticky top-0">
+              <tr>
+                <th class="px-3 py-2 text-left text-gray-600 font-medium">Time</th>
+                <th class="px-3 py-2 text-center text-gray-600 font-medium">Players</th>
+                <th class="px-3 py-2 text-right text-gray-600 font-medium">Score</th>
+                <th class="px-3 py-2 text-right text-gray-600 font-medium">Base</th>
+                <th class="px-3 py-2 text-right text-gray-600 font-medium">Bonus</th>
+                <th class="px-3 py-2 text-center text-gray-600 font-medium">Rally</th>
+                <th class="px-3 py-2 text-center text-gray-600 font-medium">Fire</th>
+                <th class="px-3 py-2 text-center text-gray-600 font-medium">Max Balls</th>
+                <th class="px-3 py-2 text-center text-gray-600 font-medium">High Score</th>
+              </tr>
+            </thead>
+            <tbody id="games-table">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/stats.js"></script>
+</body>
+</html>

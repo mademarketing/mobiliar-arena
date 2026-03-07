@@ -451,6 +451,35 @@ export function createAdminRoutes(db: PrizeDatabase): Router {
     }
   });
 
+  // ========== Play Statistics ==========
+
+  /**
+   * GET /api/admin/play-stats
+   * Get game play statistics for a specific date
+   * Query params: date (YYYY-MM-DD, defaults to today)
+   */
+  router.get('/play-stats', requireAuth, (req, res) => {
+    try {
+      const date = (req.query.date as string) || getSwissDate();
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ success: false, error: 'Invalid date format. Use YYYY-MM-DD' });
+      }
+
+      const summary = db.getGameStats(date);
+      const hourly = db.getHourlyBreakdown(date);
+      const games = db.getGamesByDate(date);
+
+      res.json({
+        success: true,
+        data: { date, summary, hourly, games },
+      });
+    } catch (error) {
+      console.error('Error fetching play stats:', error);
+      res.status(500).json({ success: false, error: 'Failed to fetch play statistics' });
+    }
+  });
+
   // ========== QR Code Management ==========
 
   /**

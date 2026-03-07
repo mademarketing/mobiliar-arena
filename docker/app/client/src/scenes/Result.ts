@@ -203,6 +203,17 @@ export default class Result extends Phaser.Scene {
       this.showBonusBreakdown(centerX, centerY, scoreText, totalScore, stats, bonusMaxBalls, bonusRally, bonusFire);
     });
 
+    // Report game to server for statistics
+    this.reportGameToServer({
+      playerCount: this.gameResult.playerCount,
+      score: totalScore,
+      baseScore: this.gameResult.score - totalBonus,
+      bonusScore: totalBonus,
+      stats: this.gameResult.stats,
+      gameDurationMs: this.game.registry.get("gameDurationMs") || 60000,
+      isHighScore: isNewHighScore,
+    });
+
     // NEW HIGH SCORE banner if applicable
     if (isNewHighScore) {
       // Delay high score banner until after bonuses are shown
@@ -543,6 +554,14 @@ export default class Result extends Phaser.Scene {
         onComplete: () => particle.destroy(),
       });
     }
+  }
+
+  private reportGameToServer(data: object): void {
+    fetch("/api/game-log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }).catch((err) => console.error("Failed to log game:", err));
   }
 
   private saveHighScoreToServer(score: number): void {

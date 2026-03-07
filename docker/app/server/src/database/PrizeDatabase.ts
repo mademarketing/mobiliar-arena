@@ -66,7 +66,8 @@ export class PrizeDatabase {
     ).get();
 
     if (tableCheck) {
-      // Tables already exist, skip initialization
+      // Run migrations for new tables
+      this.migrateGameLog();
       return;
     }
 
@@ -76,6 +77,40 @@ export class PrizeDatabase {
 
     // Execute schema creation
     this.db.exec(schema);
+  }
+
+  /**
+   * Migrate game_log table if it doesn't exist
+   * @private
+   */
+  private migrateGameLog(): void {
+    const tableCheck = this.db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='game_log'"
+    ).get();
+
+    if (tableCheck) return;
+
+    this.db.exec(`
+      CREATE TABLE game_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT NOT NULL,
+        date TEXT NOT NULL,
+        player_count INTEGER NOT NULL,
+        score INTEGER NOT NULL,
+        base_score INTEGER NOT NULL,
+        bonus_score INTEGER NOT NULL,
+        max_balls_in_play INTEGER NOT NULL DEFAULT 0,
+        longest_rally INTEGER NOT NULL DEFAULT 0,
+        fire_ball_count INTEGER NOT NULL DEFAULT 0,
+        game_duration_ms INTEGER NOT NULL,
+        theme TEXT,
+        is_high_score INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE INDEX idx_game_log_date ON game_log(date);
+      CREATE INDEX idx_game_log_timestamp ON game_log(timestamp);
+    `);
+
+    console.log('PrizeDatabase: Created game_log table');
   }
 
   /**
@@ -780,5 +815,142 @@ export class PrizeDatabase {
     `);
 
     console.log('PrizeDatabase: Created qr_codes table');
+  }
+
+  // ============================================================================
+  // Game Log Methods
+  // ============================================================================
+
+  /**
+   * Log a game to the database
+   */
+  logGame(data: {
+    timestamp: string;
+    date: string;
+    playerCount: number;
+    score: number;
+    baseScore: number;
+    bonusScore: number;
+    maxBallsInPlay: number;
+    longestRally: number;
+    fireBallCount: number;
+    gameDurationMs: number;
+    theme?: string;
+    isHighScore: boolean;
+  }): void {
+    const stmt = this.db.prepare(`
+      INSERT INTO game_log (
+        timestamp, date, player_count, score, base_score, bonus_score,
+        max_balls_in_play, longest_rally, fire_ball_count,
+        game_duration_ms, theme, is_high_score
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    stmt.run(
+      data.timestamp,
+      data.date,
+      data.playerCount,
+      data.score,
+      data.baseScore,
+      data.bonusScore,
+      data.maxBallsInPlay,
+      data.longestRally,
+      data.fireBallCount,
+      data.gameDurationMs,
+      data.theme ?? null,
+      data.isHighScore ? 1 : 0
+    );
+  }
+
+  /**
+   * Get aggregated game statistics for a date
+   */
+  getGameStats(date: string): {
+    totalGames: number;
+    totalPlayers: number;
+    avgPlayersPerGame: number;
+    avgScore: number;
+    minScore: number;
+    maxScore: number;
+    highScoreCount: number;
+    totalFireBalls: number;
+    avgLongestRally: number;
+  } {
+    const stmt = this.db.prepare(`
+      SELECT
+        COUNT(*) as totalGames,
+        COALESCE(SUM(player_count), 0) as totalPlayers,
+        COALESCE(AVG(player_count), 0) as avgPlayersPerGame,
+        COALESCE(AVG(score), 0) as avgScore,
+        COALESCE(MIN(score), 0) as minScore,
+        COALESCE(MAX(score), 0) as maxScore,
+        COALESCE(SUM(is_high_score), 0) as highScoreCount,
+        COALESCE(SUM(fire_ball_count), 0) as totalFireBalls,
+        COALESCE(AVG(longest_rally), 0) as avgLongestRally
+      FROM game_log
+      WHERE date = ?
+    `);
+
+    const result = stmt.get(date) as any;
+    return {
+      totalGames: result.totalGames,
+      totalPlayers: result.totalPlayers,
+      avgPlayersPerGame: Math.round(result.avgPlayersPerGame * 10) / 10,
+      avgScore: Math.round(result.avgScore),
+      minScore: result.minScore,
+      maxScore: result.maxScore,
+      highScoreCount: result.highScoreCount,
+      totalFireBalls: result.totalFireBalls,
+      avgLongestRally: Math.round(result.avgLongestRally),
+    };
+  }
+
+  /**
+   * Get all games for a specific date
+   */
+  getGamesByDate(date: string): Array<{
+    id: number;
+    timestamp: string;
+    player_count: number;
+    score: number;
+    base_score: number;
+    bonus_score: number;
+    max_balls_in_play: number;
+    longest_rally: number;
+    fire_ball_count: number;
+    game_duration_ms: number;
+    theme: string | null;
+    is_high_score: number;
+  }> {
+    const stmt = this.db.prepare(`
+      SELECT id, timestamp, player_count, score, base_score, bonus_score,
+             max_balls_in_play, longest_rally, fire_ball_count,
+             game_duration_ms, theme, is_high_score
+      FROM game_log
+      WHERE date = ?
+      ORDER BY timestamp DESC
+    `);
+    return stmt.all(date) as any[];
+  }
+
+  /**
+   * Get games grouped by hour for a specific date
+   */
+  getHourlyBreakdown(date: string): Array<{
+    hour: number;
+    games: number;
+    avgScore: number;
+  }> {
+    const stmt = this.db.prepare(`
+      SELECT
+        CAST(strftime('%H', timestamp) AS INTEGER) as hour,
+        COUNT(*) as games,
+        ROUND(AVG(score)) as avgScore
+      FROM game_log
+      WHERE date = ?
+      GROUP BY hour
+      ORDER BY hour ASC
+    `);
+    return stmt.all(date) as any[];
   }
 }

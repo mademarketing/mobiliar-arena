@@ -279,7 +279,6 @@ ${overallIcon} ${result.stability.overallStable ? 'PASS - System is production r
         console.log(`- Event loop delay averaged ${result.performance.avgEventLoopDelay.toFixed(2)} ms - investigate blocking operations`);
         console.log('  • Review synchronous database operations');
         console.log('  • Check animation timing code');
-        console.log('  • Consider optimizing prize distribution algorithm');
       }
 
       if (!result.stability.noErrors) {

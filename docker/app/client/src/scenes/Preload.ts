@@ -43,7 +43,6 @@ export default class Preload extends Phaser.Scene {
     this.load.image(TextureKeys.Logo, "assets/images/logo.png");
     this.load.image(TextureKeys.Background, "assets/images/background.png");
     this.load.image(TextureKeys.MobiliarLogo, "assets/images/logomobilar.png");
-    this.load.image(TextureKeys.Giveaway, "assets/images/giveaway.png");
 
     // Initialize translations
     initTranslations(this.settings?.language || "de");

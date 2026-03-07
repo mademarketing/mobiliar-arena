@@ -1,8 +1,7 @@
 /**
  * InfoPanel - Shared left panel for the second screen layout
  *
- * Renders Mobiliar logo, current highscore, giveaway threshold text,
- * and giveaway product image on the left side of the screen.
+ * Renders Mobiliar logo and current highscore on the left side of the screen.
  */
 
 import Phaser from "phaser";
@@ -64,41 +63,6 @@ export default class InfoPanel {
       .setOrigin(0, 0)
       .setDepth(PANEL_DEPTH + 1);
     this.elements.push(this.highScoreText);
-
-    // Giveaway threshold text — left-aligned
-    const settings = scene.game.registry.get("gameSettings") || {};
-    const threshold = settings.giveawayThreshold ?? 245;
-
-    const giveawayLabel = scene.add.text(LEFT_PAD, 540, t("infoPanel.giveawayLabel"), {
-      fontFamily: "MuseoSans, sans-serif",
-      fontSize: "36px",
-      color: "#333333",
-    })
-      .setOrigin(0, 0)
-      .setDepth(PANEL_DEPTH + 1);
-    this.elements.push(giveawayLabel);
-
-    const thresholdText = scene.add.text(LEFT_PAD, 590, t("infoPanel.giveawayThresh", { threshold }), {
-      fontFamily: "MuseoSans, sans-serif",
-      fontSize: "36px",
-      color: "#333333",
-    })
-      .setOrigin(0, 0)
-      .setDepth(PANEL_DEPTH + 1);
-    this.elements.push(thresholdText);
-
-    // Giveaway product image — left-aligned below text
-    if (scene.textures.exists(TextureKeys.Giveaway)) {
-      const giveaway = scene.add.image(LEFT_PAD, 670, TextureKeys.Giveaway)
-        .setOrigin(0, 0)
-        .setDepth(PANEL_DEPTH + 1);
-      const maxImgWidth = pw - LEFT_PAD * 2;
-      const maxImgHeight = 400;
-      const scaleW = giveaway.width > maxImgWidth ? maxImgWidth / giveaway.width : 1;
-      const scaleH = giveaway.height > maxImgHeight ? maxImgHeight / giveaway.height : 1;
-      giveaway.setScale(Math.min(scaleW, scaleH));
-      this.elements.push(giveaway);
-    }
   }
 
   /**

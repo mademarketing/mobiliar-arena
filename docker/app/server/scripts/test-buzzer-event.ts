@@ -50,14 +50,6 @@ socket.on('connect', () => {
   }, 5000);
 });
 
-socket.on(GameEvents.PrizeAwarded, (outcome: any) => {
-  console.log(`✅ Prize awarded:`, {
-    type: outcome.prizeType,
-    display: outcome.displayName,
-    id: outcome.prizeId,
-  });
-});
-
 socket.on(GameEvents.GamePaused, () => {
   console.log('⏸️  Game paused');
 });

@@ -1,6 +1,0 @@
-{
-  "prizes": [
-    { "textureKey": "prize-a", "displayName": "Prize A" },
-    { "textureKey": "prize-b", "displayName": "Prize B" }
-  ]
-}

@@ -15,8 +15,6 @@ const TextureKeys = {
   Ball: "ball",
   /** Mobiliar logo for info panel */
   MobiliarLogo: "mobiliar-logo",
-  /** Giveaway product image */
-  Giveaway: "giveaway",
 } as const;
 
 export default TextureKeys;

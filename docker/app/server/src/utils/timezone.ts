@@ -1,11 +1,6 @@
 /**
  * Timezone utilities for Swiss timezone (Europe/Zurich)
  * Ensures consistent date/time handling across the application
- *
- * IMPORTANT: All prize logic must use Swiss timezone to ensure:
- * - Opening hours (10:00-20:00) are in Swiss time
- * - Scheduled prizes trigger at correct Swiss local time
- * - Date boundaries match Swiss calendar (not UTC)
  */
 
 /**

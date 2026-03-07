@@ -6,10 +6,8 @@
  * - Database performance under load
  * - Socket.io connection reliability
  * - Animation timing consistency
- * - Prize distribution accuracy
  *
  * Run with: npm run stress-test
- * Monitor with: npm run stress-test:monitor (in separate terminal)
  */
 
 import { io, Socket } from "socket.io-client";
@@ -330,12 +328,7 @@ Output Directory: ${this.config.outputDir}
                 this.log(`✅ Ready for next play (play ${this.playCount})`);
               }, 2000); // Wait 2s for transition
             }
-          }, 5000); // Wait 5s to view prize
-        });
-
-        // Listen for prize awarded events (frontend will process and send completion)
-        this.socket!.on(GameEvents.PrizeAwarded, (outcome: any) => {
-          isAnimationComplete = false; // Animation started
+          }, 5000); // Wait 5s to view result
         });
 
         const scheduledNextPress = () => {
